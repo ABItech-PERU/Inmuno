@@ -31,7 +31,7 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout title="Log in" backRoute="/">
+    <GuestLayout title="Iniciar sesión" backRoute="/">
         <div class="w-full max-w-md mx-auto px-6 py-6">
             <h1 class="text-2xl font-semibold text-cyan-600 mb-10">Iniciar sesión</h1>
 
@@ -76,7 +76,7 @@ const submit = () => {
                 <!-- Continuar con Google -->
                 <div>
                     <div class="flex items-center justify-center mt-10">
-                        <a href="/auth/google"
+                        <a :href="route('google')"
                             class="flex items-center justify-center gap-3 w-full max-w-xs px-5 py-2 bg-white border border-gray-300 rounded-full shadow-md hover:shadow-lg transition duration-200 ease-in-out">
                             <!-- Ícono de Google -->
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"
