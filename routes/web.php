@@ -34,4 +34,12 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    // Rutas de administración - solo para administradores
+    Route::middleware(['role:ADMINISTRADOR'])->prefix('admin')->name('admin.')->group(function () {
+        // Gestión de Vacunas
+        Route::resource('vacunas', App\Http\Controllers\Admin\VacunaController::class);
+        Route::patch('vacunas/{vacuna}/toggle-status', [App\Http\Controllers\Admin\VacunaController::class, 'toggleStatus'])
+            ->name('vacunas.toggle-status');
+    });
 });

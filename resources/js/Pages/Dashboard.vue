@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage, Link } from '@inertiajs/vue3';
 import {
     BeakerIcon,
     CalendarDaysIcon,
@@ -82,24 +82,24 @@ const quickActions = computed(() => {
                 title: 'Registrar Vacunación',
                 subtitle: 'Aplicar y registrar nueva vacuna',
                 icon: PlusCircleIcon,
-                color: 'bg-gradient-to-r from-blue-400 to-indigo-400',
-                textColor: 'text-blue-700',
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
                 route: 'vaccinations.create'
             },
             {
                 title: 'Pacientes del Día',
                 subtitle: 'Ver citas programadas para hoy',
                 icon: UserGroupIcon,
-                color: 'bg-gradient-to-r from-green-400 to-emerald-400',
-                textColor: 'text-green-700',
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
                 route: 'appointments.today'
             },
             {
                 title: 'Esquemas de Vacunación',
                 subtitle: 'Gestionar protocolos de vacunación',
                 icon: ClipboardDocumentListIcon,
-                color: 'bg-gradient-to-r from-purple-400 to-violet-400',
-                textColor: 'text-purple-700',
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
                 route: 'vaccination-schemes.index'
             },
             {
@@ -117,25 +117,25 @@ const quickActions = computed(() => {
                 title: 'Gestión de Vacunas',
                 subtitle: 'Administrar catálogo de vacunas',
                 icon: BeakerIcon,
-                color: 'bg-gradient-to-r from-indigo-400 to-purple-400',
-                textColor: 'text-indigo-700',
-                route: 'admin.vaccines.index'
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
+                route: '/admin/vacunas'
             },
             {
                 title: 'Usuarios del Sistema',
                 subtitle: 'Gestionar médicos y pacientes',
                 icon: UserGroupIcon,
-                color: 'bg-gradient-to-r from-green-400 to-teal-400',
-                textColor: 'text-green-700',
-                route: 'admin.users.index'
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
+                route: '/admin/users'
             },
             {
                 title: 'Reportes y Estadísticas',
                 subtitle: 'Análisis del sistema de vacunación',
                 icon: ChartBarIcon,
-                color: 'bg-gradient-to-r from-blue-400 to-cyan-400',
-                textColor: 'text-blue-700',
-                route: 'admin.reports.index'
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
+                route: '/admin/reports'
             },
             {
                 title: 'Centros de Salud',
@@ -143,7 +143,7 @@ const quickActions = computed(() => {
                 icon: MapPinIcon,
                 color: 'bg-gradient-to-r from-red-400 to-pink-400',
                 textColor: 'text-red-700',
-                route: 'admin.health-centers.index'
+                route: '/admin/health-centers'
             }
         ];
     } else {
@@ -185,26 +185,26 @@ const additionalInfo = computed(() => [
 
 <template>
     <AppLayout title="Dashboard - Inmuno Alerta">
-        <div class="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
+        <div class="min-h-screen bg-gray-50">
             <!-- Header Section -->
-            <div class="bg-white shadow-sm border-b border-gray-100">
+            <div class="bg-white shadow-sm border-b border-gray-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                                Bienvenido a tu plataforma de vacunación
+                            <h1 class="text-xl sm:text-3xl font-bold text-gray-900 mb-2">
+                                Panel de control
                             </h1>
-                            <p class="text-gray-600 text-sm sm:text-base">
-                                Hola {{ user.name }}, mantén al día tu esquema de vacunación
+                            <p class="text-gray-600 text-sm">
+                                Bienvenido {{ user.name }}, mantén al día tu esquema de vacunación.
                             </p>
                         </div>
                         <div class="mt-4 sm:mt-0 flex items-center space-x-2">
-                            <div class="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <div class="flex items-center bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">
+                                <div class="w-2 h-2 bg-cyan-500 rounded-full mr-2"></div>
                                 Sistema Activo
                             </div>
                             <!-- Debug temporal - mostrar rol actual -->
-                            <div v-if="user.roles && user.roles.length > 0" class="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                            <div v-if="user.roles && user.roles.length > 0" class="flex items-center bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">
                                 Rol: {{ user.roles[0].name }}
                             </div>
                             <div v-else class="flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
@@ -215,114 +215,144 @@ const additionalInfo = computed(() => [
                 </div>
             </div>
 
-            <!-- Stats Section (solo para médicos y administradores) -->
-            <div v-if="user.roles?.some(role => ['MEDICO', 'ADMINISTRADOR', 'medico', 'administrador'].includes(role.name))"
-                 class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <BeakerIcon class="w-5 h-5 text-blue-600" />
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas }}</p>
-                                <p class="text-sm text-gray-500">Vacunas Aplicadas</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <UserGroupIcon class="w-5 h-5 text-green-600" />
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.pacientesVacunados }}</p>
-                                <p class="text-sm text-gray-500">Pacientes Vacunados</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                    <CalendarDaysIcon class="w-5 h-5 text-yellow-600" />
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.citasPendientes }}</p>
-                                <p class="text-sm text-gray-500">Citas Pendientes</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                                    <BellIcon class="w-5 h-5 text-red-600" />
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.recordatoriosHoy }}</p>
-                                <p class="text-sm text-gray-500">Recordatorios Hoy</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Main Content -->
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Quick Actions -->
-                    <div class="space-y-4">
-                        <div v-for="action in quickActions"
-                             :key="action.title"
-                             class="group cursor-pointer transform transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div class="p-6">
-                                    <div class="flex items-center space-x-4">
-                                        <div :class="[action.color, 'w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110']">
-                                            <component :is="action.icon" class="w-7 h-7 text-white" />
+            <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
+                <!-- Stats Section (solo para médicos y administradores) -->
+                <div v-if="user.roles?.some(role => ['MEDICO', 'ADMINISTRADOR', 'medico', 'administrador'].includes(role.name))"
+                     class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                    <!-- Header con título -->
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-base sm:text-lg font-medium text-gray-900">
+                            Estadísticas del Sistema
+                        </h3>
+                    </div>
+
+                    <!-- Grid de estadísticas -->
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                            <BeakerIcon class="w-5 h-5 text-cyan-600" />
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h3 :class="[action.textColor, 'text-lg font-semibold mb-1 group-hover:text-gray-900 transition-colors']">
-                                                {{ action.title }}
-                                            </h3>
-                                            <p class="text-gray-500 text-sm leading-relaxed">
-                                                {{ action.subtitle }}
-                                            </p>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas }}</p>
+                                        <p class="text-sm text-gray-500">Vacunas Aplicadas</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                            <UserGroupIcon class="w-5 h-5 text-cyan-600" />
                                         </div>
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
-                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                            </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.pacientesVacunados }}</p>
+                                        <p class="text-sm text-gray-500">Pacientes Vacunados</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                            <CalendarDaysIcon class="w-5 h-5 text-yellow-600" />
                                         </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.citasPendientes }}</p>
+                                        <p class="text-sm text-gray-500">Citas Pendientes</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                            <BellIcon class="w-5 h-5 text-red-600" />
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.recordatoriosHoy }}</p>
+                                        <p class="text-sm text-gray-500">Recordatorios Hoy</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Additional Information & Recent Activity -->
-                    <div class="space-y-6">
-                        <!-- Quick Info Section -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Adicional</h3>
+                <!-- Quick Actions Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                    <!-- Header -->
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-base sm:text-lg font-medium text-gray-900">
+                            Acciones Rápidas
+                        </h3>
+                    </div>
+
+                    <!-- Grid de acciones -->
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <Link v-for="action in quickActions"
+                                 :key="action.title"
+                                 :href="action.route"
+                                 class="block group cursor-pointer transition-all duration-200">
+                                <div class="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-md transition-all">
+                                    <div class="p-4">
+                                        <div class="flex items-center space-x-4">
+                                            <div :class="[action.color, 'w-12 h-12 rounded-lg flex items-center justify-center shadow-sm']">
+                                                <component :is="action.icon" class="w-6 h-6 text-white" />
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <h4 :class="[action.textColor, 'text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors']">
+                                                    {{ action.title }}
+                                                </h4>
+                                                <p class="text-gray-500 text-sm">
+                                                    {{ action.subtitle }}
+                                                </p>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
+                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <!-- Header -->
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-base sm:text-lg font-medium text-gray-900">
+                            Información Adicional
+                        </h3>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Quick Info Section -->
                             <div class="space-y-4">
                                 <div v-for="info in additionalInfo"
                                      :key="info.title"
-                                     class="group cursor-pointer transform transition-all duration-200 hover:bg-gray-50 rounded-xl p-4 -m-4">
+                                     class="group cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-3 -m-3">
                                     <div class="flex items-center space-x-4">
-                                        <div :class="[info.color, 'w-12 h-12 rounded-lg flex items-center justify-center shadow-md']">
-                                            <component :is="info.icon" class="w-6 h-6 text-white" />
+                                        <div :class="[info.color, 'w-10 h-10 rounded-lg flex items-center justify-center shadow-sm']">
+                                            <component :is="info.icon" class="w-5 h-5 text-white" />
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <h4 :class="[info.textColor, 'font-medium group-hover:text-gray-900 transition-colors']">
@@ -341,61 +371,29 @@ const additionalInfo = computed(() => [
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Tips Section -->
-                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
-                            <div class="flex items-start space-x-3">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
+                            <!-- Tips Section -->
+                            <div class="bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-lg border border-cyan-200 p-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-blue-900 mb-2">Consejos Importantes</h4>
-                                    <ul class="text-blue-800 text-sm space-y-1">
-                                        <li>• Mantén tu carné de vacunación actualizado</li>
-                                        <li>• Programa tus citas con anticipación</li>
-                                        <li>• Consulta el esquema de vacunación recomendado</li>
-                                        <li>• No olvides las dosis de refuerzo</li>
-                                    </ul>
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-cyan-800 mb-2">Consejo del Sistema</h4>
+                                        <p class="text-xs text-cyan-700 leading-relaxed">
+                                            Mantén siempre actualizado tu esquema de vacunación. La prevención es la mejor medicina para cuidar tu salud y la de tu comunidad.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <div class="bg-white border-t border-gray-100 mt-12">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-500">
-                            Copyright © 2025 - Política de Privacidad y Términos y Condiciones
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     </AppLayout>
 </template>
-
-<style scoped>
-/* Animaciones adicionales para mejorar la UX */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.group:hover .transform {
-    animation: fadeInUp 0.3s ease-out;
-}
-</style>
