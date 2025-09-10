@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('vacuna_id')->constrained('vacunas')->onDelete('cascade');
             $table->foreignId('dosis_vacuna_id')->nullable()->constrained('dosis_vacunas')->onDelete('set null');
             $table->foreignId('medico_id')->constrained('users')->onDelete('cascade'); // médico que aplicó
-            $table->foreignId('centro_salud_id')->constrained('centro_saluds')->onDelete('cascade');
+            $table->foreignId('centro_salud_id')->constrained('centros_salud')->onDelete('cascade');
             $table->integer('numero_dosis');
             $table->date('fecha_aplicacion');
             $table->string('lote_vacuna')->nullable();

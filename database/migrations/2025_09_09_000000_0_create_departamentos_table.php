@@ -11,9 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('centros_salud', function (Blueprint $table) {
+        Schema::create('departamentos', function (Blueprint $table) {
             $table->id();
+            $table->string('codigo_ubigeo', 2)->unique(); // Código UBIGEO de 2 dígitos para departamento
+            $table->string('nombre');
+            $table->boolean('activo')->default(true);
             $table->timestamps();
+
+            // Índices
+            $table->index('codigo_ubigeo');
+            $table->index('activo');
         });
     }
 
@@ -22,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('centros_salud');
+        Schema::dropIfExists('departamentos');
     }
 };

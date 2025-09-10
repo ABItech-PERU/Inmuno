@@ -103,7 +103,7 @@ const formatIntervalo = (dias) => {
                                 <BeakerIcon class="h-12 w-12 text-cyan-600" />
                             </div>
                             <div>
-                                <h1 class="text-3xl font-bold text-gray-900">{{ vacuna.nombre }}</h1>
+                                <h1 class="text-2xl font-bold text-gray-900">{{ vacuna.nombre }}</h1>
                                 <div class="flex items-center space-x-4 mt-2">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                                           :class="[statusBgColor, statusColor]">

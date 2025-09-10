@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('paciente_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('medico_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('centro_salud_id')->constrained('centro_saluds')->onDelete('cascade');
+            $table->foreignId('centro_salud_id')->constrained('centros_salud')->onDelete('cascade');
             $table->foreignId('vacuna_id')->nullable()->constrained('vacunas')->onDelete('set null');
             $table->datetime('fecha_hora');
             $table->string('tipo_cita'); // vacunacion, consulta, control, etc.

@@ -35,7 +35,7 @@ class VacunaController extends Controller
             $query->where('activa', $request->get('activa') === 'true');
         }
 
-        $vacunas = $query->orderBy('nombre')
+        $vacunas = $query->orderBy('id', 'desc')
                         ->paginate(15)
                         ->withQueryString();
 

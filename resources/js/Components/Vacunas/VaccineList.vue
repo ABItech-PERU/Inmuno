@@ -74,6 +74,9 @@ defineExpose({
                 <thead class="bg-gradient-to-r from-cyan-50 to-cyan-100">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-cyan-700 uppercase tracking-wider">
+                            ID
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-cyan-700 uppercase tracking-wider">
                             Vacuna
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-cyan-700 uppercase tracking-wider">
@@ -95,6 +98,11 @@ defineExpose({
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <tr v-for="vacuna in vacunas" :key="vacuna.id" class="hover:bg-cyan-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ vacuna.id }}
+                            </div>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
@@ -188,9 +196,10 @@ defineExpose({
                                     <h3 class="text-sm sm:text-base font-medium text-gray-900 truncate">
                                         {{ vacuna.nombre }}
                                     </h3>
-                                    <p class="text-xs sm:text-sm text-gray-500 mt-1" v-if="vacuna.fabricante">
-                                        {{ vacuna.fabricante }}
-                                    </p>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <span class="text-xs sm:text-sm text-cyan-600 font-medium">#{{ vacuna.id }}</span>
+                                        <span v-if="vacuna.fabricante" class="text-xs sm:text-sm text-gray-500">{{ vacuna.fabricante }}</span>
+                                    </div>
                                 </div>
                                 <span
                                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0"

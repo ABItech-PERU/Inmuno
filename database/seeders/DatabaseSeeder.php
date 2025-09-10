@@ -16,6 +16,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,
             UsersSeeder::class,
+            VacunasSeeder::class,
+            DepartamentosSeeder::class,
+            ProvinciasSeeder::class,
+            DistritosSeeder::class,
+            CentrosSaludSeeder::class,
         ]);
     }
 }

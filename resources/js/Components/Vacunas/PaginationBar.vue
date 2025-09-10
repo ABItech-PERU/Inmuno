@@ -15,7 +15,7 @@ const props = defineProps({
                 <Link
                     v-if="meta.prev_page_url"
                     :href="meta.prev_page_url"
-                    class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
                 >
                     <ChevronLeftIcon class="h-4 w-4 mr-1" />
                     Anterior
@@ -30,7 +30,7 @@ const props = defineProps({
                 <Link
                     v-if="meta.next_page_url"
                     :href="meta.next_page_url"
-                    class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    class="relative inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
                 >
                     Siguiente
                     <ChevronRightIcon class="h-4 w-4 ml-1" />
@@ -62,7 +62,7 @@ const props = defineProps({
                         <Link
                             v-if="meta.prev_page_url"
                             :href="meta.prev_page_url"
-                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none transition-colors"
                             title="Página anterior"
                         >
                             <ChevronLeftIcon class="h-4 w-4 mr-1" />
@@ -70,14 +70,14 @@ const props = defineProps({
                         </Link>
 
                         <!-- Indicador de página actual -->
-                        <span class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                        <span class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-cyan-50 text-sm font-medium text-cyan-700">
                             {{ meta.current_page }} de {{ meta.last_page }}
                         </span>
 
                         <Link
                             v-if="meta.next_page_url"
                             :href="meta.next_page_url"
-                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none transition-colors"
                             title="Página siguiente"
                         >
                             <span class="hidden lg:inline">Siguiente</span>

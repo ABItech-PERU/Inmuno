@@ -143,7 +143,7 @@ const quickActions = computed(() => {
                 icon: MapPinIcon,
                 color: 'bg-gradient-to-r from-red-400 to-pink-400',
                 textColor: 'text-red-700',
-                route: '/admin/health-centers'
+                route: '/admin/centros-salud'
             }
         ];
     } else {

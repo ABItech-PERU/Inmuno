@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
@@ -20,7 +20,7 @@ const props = defineProps({
     },
     title: {
         type: String,
-        required: true
+        default: ''
     },
     message: {
         type: String,
@@ -40,6 +40,16 @@ const emit = defineEmits(['close']);
 
 const isVisible = ref(false);
 let timeoutId = null;
+
+// Estado interno para mensajes dinámicos
+const internalTitle = ref('');
+const internalMessage = ref('');
+const internalType = ref('success');
+
+// Computed para usar props o estado interno
+const currentTitle = computed(() => props.title || internalTitle.value);
+const currentMessage = computed(() => props.message || internalMessage.value);
+const currentType = computed(() => props.type || internalType.value);
 
 const iconComponents = {
     success: CheckCircleIcon,
@@ -112,6 +122,21 @@ onMounted(() => {
         startTimeout();
     }
 });
+
+// Método para mostrar toast dinámicamente
+const show = (message, type = 'success', title = '') => {
+    internalMessage.value = message;
+    internalType.value = type;
+    internalTitle.value = title;
+    isVisible.value = true;
+    startTimeout();
+};
+
+// Exponer métodos para uso con ref
+defineExpose({
+    show,
+    close
+});
 </script>
 
 <template>
@@ -130,33 +155,37 @@ onMounted(() => {
             >
                 <div
                     class="rounded-lg border shadow-lg p-4"
-                    :class="colorClasses[type].container"
+                    :class="colorClasses[currentType].container"
                 >
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <component
-                                :is="iconComponents[type]"
+                                :is="iconComponents[currentType]"
                                 class="h-5 w-5"
-                                :class="colorClasses[type].icon"
+                                :class="colorClasses[currentType].icon"
                             />
                         </div>
                         <div class="ml-3 flex-1">
-                            <h3 class="text-sm font-medium" :class="colorClasses[type].title">
-                                {{ title }}
+                            <h3
+                                v-if="currentTitle"
+                                class="text-sm font-medium"
+                                :class="colorClasses[currentType].title"
+                            >
+                                {{ currentTitle }}
                             </h3>
                             <p
-                                v-if="message"
-                                class="mt-1 text-sm"
-                                :class="colorClasses[type].message"
+                                v-if="currentMessage"
+                                class="text-sm"
+                                :class="[currentTitle ? 'mt-1' : '', colorClasses[currentType].message]"
                             >
-                                {{ message }}
+                                {{ currentMessage }}
                             </p>
                         </div>
                         <div v-if="closeable" class="ml-4 flex-shrink-0">
                             <button
                                 @click="close"
                                 class="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                                :class="[colorClasses[type].closeBtn, `focus:ring-${type === 'info' ? 'cyan' : type}-500`]"
+                                :class="[colorClasses[currentType].closeBtn, `focus:ring-${currentType === 'info' ? 'cyan' : currentType}-500`]"
                             >
                                 <span class="sr-only">Cerrar</span>
                                 <XMarkIcon class="h-4 w-4" />

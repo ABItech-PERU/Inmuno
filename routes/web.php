@@ -41,5 +41,14 @@ Route::middleware([
         Route::resource('vacunas', App\Http\Controllers\Admin\VacunaController::class);
         Route::patch('vacunas/{vacuna}/toggle-status', [App\Http\Controllers\Admin\VacunaController::class, 'toggleStatus'])
             ->name('vacunas.toggle-status');
+
+        // Gestión de Centros de Salud
+        Route::resource('centros-salud', App\Http\Controllers\Admin\CentroSaludController::class);
+        Route::patch('centros-salud/{centros_salud}/toggle-status', [App\Http\Controllers\Admin\CentroSaludController::class, 'toggleStatus'])
+            ->name('centros-salud.toggle-status');
+        Route::get('api/provincias/{departamento}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getProvincias'])
+            ->name('api.provincias');
+        Route::get('api/distritos/{provincia}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getDistritos'])
+            ->name('api.distritos');
     });
 });

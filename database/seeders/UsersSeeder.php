@@ -15,16 +15,19 @@ class UsersSeeder extends Seeder
         User::factory()->create([
             'name' => 'ADMINISTRADOR',
             'email' => 'admin@gmail.com',
+            'se_registro' => 1,
         ])->assignRole('ADMINISTRADOR');
 
         User::factory()->create([
             'name' => 'MEDICO',
             'email' => 'medico@gmail.com',
+            'se_registro' => 1,
         ])->assignRole('MEDICO');
 
         User::factory()->create([
             'name' => 'PACIENTE',
             'email' => 'paciente@gmail.com',
+            'se_registro' => 1,
         ])->assignRole('PACIENTE');
 
         User::factory(10)->create();
