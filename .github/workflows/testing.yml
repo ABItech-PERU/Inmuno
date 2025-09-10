@@ -15,7 +15,7 @@ jobs:
           key: ${{ secrets.UAT_SSH_KEY }}
           script: |
             php -v
-            cd htdocs/inmunealerta.abitech.dev
+            cd htdocs/inmunoalerta.abitech.dev
             git reset --hard HEAD
             git pull origin test
             composer install
