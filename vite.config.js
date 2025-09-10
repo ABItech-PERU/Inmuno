@@ -18,14 +18,4 @@ export default defineConfig({
             },
         }),
     ],
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks: undefined,
-            }
-        }
-    },
-    define: {
-        global: 'globalThis',
-    }
 });
