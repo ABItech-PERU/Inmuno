@@ -19,6 +19,7 @@ export default defineConfig({
         }),
     ],
     build: {
+        target: 'node18',
         rollupOptions: {
             output: {
                 manualChunks: undefined,
@@ -27,5 +28,8 @@ export default defineConfig({
     },
     define: {
         global: 'globalThis',
+    },
+    optimizeDeps: {
+        exclude: ['@vitejs/plugin-vue']
     }
 });
