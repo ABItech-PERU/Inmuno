@@ -13,10 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
+            $table->string('apellidos')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('google_id')->nullable();
+            $table->integer('estado')->default(1);
+            $table->integer('se_registro')->default(0); // 0:No 1:Si
+            $table->string('tipo_documento')->nullable();
+            $table->string('numero_documento')->nullable();
+            $table->string('telefono')->nullable();
+            $table->string('direccion')->nullable();
+            $table->date('fecha_nacimiento')->nullable();
+            $table->date('fecha_emision')->nullable();
+            $table->string('genero')->nullable();
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
