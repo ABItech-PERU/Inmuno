@@ -52,6 +52,14 @@ const quickActions = computed(() => {
                 route: 'vaccines.index'
             },
             {
+                title: 'Gestionar dependientes',
+                subtitle: 'Administra la información de tus dependientes',
+                icon: UserGroupIcon,
+                color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+                textColor: 'text-cyan-700',
+                route: '/paciente/dependientes'
+            },
+            {
                 title: 'Esquema de vacunación',
                 subtitle: 'Tu calendario de vacunas personalizado',
                 icon: CalendarDaysIcon,
@@ -60,12 +68,12 @@ const quickActions = computed(() => {
                 route: 'vaccination-schedule.show'
             },
             {
-                title: 'Recordatorio para mi próxima vacuna',
-                subtitle: 'Agenda tu siguiente cita de vacunación',
+                title: 'Recordatorios de Vacunación',
+                subtitle: 'Gestiona tus recordatorios de vacunación y los de tu familia',
                 icon: BellIcon,
                 color: 'bg-gradient-to-r from-red-400 to-pink-400',
                 textColor: 'text-red-700',
-                route: 'appointments.create'
+                route: '/paciente/recordatorios'
             },
             {
                 title: 'Centros de salud más cercano',
@@ -294,7 +302,7 @@ const additionalInfo = computed(() => [
                     <!-- Header -->
                     <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
                         <h3 class="text-base sm:text-lg font-medium text-gray-900">
-                            Acciones Rápidas
+                            Acciones rápidas
                         </h3>
                     </div>
 
@@ -338,7 +346,7 @@ const additionalInfo = computed(() => [
                     <!-- Header -->
                     <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
                         <h3 class="text-base sm:text-lg font-medium text-gray-900">
-                            Información Adicional
+                            Información adicional
                         </h3>
                     </div>
 

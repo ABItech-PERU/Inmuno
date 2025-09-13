@@ -2,6 +2,8 @@
 
 use App\Actions\Fortify\CompletarRegistro;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\Paciente\DependientesController;
+use App\Http\Controllers\Paciente\RecordatoriosController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -50,5 +52,27 @@ Route::middleware([
             ->name('api.provincias');
         Route::get('api/distritos/{provincia}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getDistritos'])
             ->name('api.distritos');
+    });
+
+    // Rutas para pacientes - solo para usuarios con rol PACIENTE
+    Route::middleware(['role:PACIENTE'])->prefix('paciente')->name('paciente.')->group(function () {
+        // Módulo de Recordatorios
+        Route::get('/recordatorios', [RecordatoriosController::class, 'index'])
+            ->name('recordatorios.index');
+        Route::get('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'show'])
+            ->name('recordatorios.show');
+        Route::post('/recordatorios', [RecordatoriosController::class, 'store'])
+            ->name('recordatorios.store');
+        Route::get('/recordatorios/{recordatorio}/edit', [RecordatoriosController::class, 'edit'])
+            ->name('recordatorios.edit');
+        Route::put('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'update'])
+            ->name('recordatorios.update');
+        Route::delete('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'destroy'])
+            ->name('recordatorios.destroy');
+        Route::patch('/recordatorios/{recordatorio}/completado', [RecordatoriosController::class, 'marcarCompletado'])
+            ->name('recordatorios.marcar-completado');
+
+        // Módulo de Dependientes
+        Route::resource('dependientes', DependientesController::class);
     });
 });

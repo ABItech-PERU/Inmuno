@@ -71,7 +71,13 @@ const logout = () => {
 
                                 <!-- Enlaces para Pacientes -->
                                 <template v-if="$page.props.auth.user.roles?.some(role => ['PACIENTE', 'paciente'].includes(role.name))">
-                                    <NavLink :href="'/mi-carnet'" :active="$page.url.startsWith('/mi-carnet')">
+                                    <NavLink href="/paciente/dependientes" :active="$page.url.startsWith('/paciente/dependientes')">
+                                        Dependientes
+                                    </NavLink>
+                                    <NavLink href="/paciente/recordatorios" :active="$page.url.startsWith('/paciente/recordatorios')">
+                                        Recordatorios
+                                    </NavLink>
+                                    <NavLink href="/mi-carnet" :active="$page.url.startsWith('/mi-carnet')">
                                         Mi Carnet
                                     </NavLink>
                                 </template>
@@ -238,7 +244,13 @@ const logout = () => {
 
                         <!-- Enlaces para Pacientes -->
                         <template v-if="$page.props.auth.user.roles?.some(role => ['PACIENTE', 'paciente'].includes(role.name))">
-                            <ResponsiveNavLink :href="'/mi-carnet'" :active="$page.url.startsWith('/mi-carnet')">
+                            <ResponsiveNavLink href="/paciente/dependientes" :active="$page.url.startsWith('/paciente/dependientes')">
+                                Dependientes
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href="/paciente/recordatorios" :active="$page.url.startsWith('/paciente/recordatorios')">
+                                Recordatorios
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href="/mi-carnet" :active="$page.url.startsWith('/mi-carnet')">
                                 Mi Carnet
                             </ResponsiveNavLink>
                         </template>

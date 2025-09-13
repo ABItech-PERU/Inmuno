@@ -121,6 +121,37 @@ class User extends Authenticatable
         return $this->hasMany(Recordatorio::class);
     }
 
+    /**
+     * Dependientes que este usuario tutora (hijos, apoderados)
+     */
+    public function dependientes()
+    {
+        return $this->hasMany(Dependiente::class, 'tutor_id');
+    }
+
+    /**
+     * Relación si este usuario es dependiente de alguien
+     */
+    public function esDependienteDe()
+    {
+        return $this->hasOne(Dependiente::class, 'dependiente_user_id');
+    }
+
+    /**
+     * Obtener todos los tutores de este usuario (si es que es dependiente)
+     */
+    public function tutores()
+    {
+        return $this->hasManyThrough(
+            User::class,
+            Dependiente::class,
+            'dependiente_user_id', // Foreign key en dependientes
+            'id', // Foreign key en users (tutores)
+            'id', // Local key en este user
+            'tutor_id' // Local key en dependientes
+        );
+    }
+
     // Métodos auxiliares
 
     /**
@@ -145,6 +176,51 @@ class User extends Authenticatable
     public function esPaciente()
     {
         return $this->hasRole('PACIENTE');
+    }
+
+    /**
+     * Verificar si este usuario es dependiente de otro
+     */
+    public function esDependiente()
+    {
+        return $this->esDependienteDe()->exists();
+    }
+
+    /**
+     * Verificar si este usuario tiene dependientes
+     */
+    public function tieneDependientes()
+    {
+        return $this->dependientes()->where('activo', true)->exists();
+    }
+
+    /**
+     * Obtener todos los recordatorios incluyendo los de dependientes
+     */
+    public function recordatoriosCompletos()
+    {
+        $recordatoriosPropios = $this->recordatorios();
+
+        // Si tiene dependientes, también incluir recordatorios relacionados
+        if ($this->tieneDependientes()) {
+            $dependientes = $this->dependientes()->activos()->get();
+            $recordatoriosDependientes = collect();
+
+            foreach ($dependientes as $dependiente) {
+                // Buscar recordatorios que mencionen al dependiente
+                $recordatoriosDep = Recordatorio::where('user_id', $this->id)
+                    ->where(function($query) use ($dependiente) {
+                        $query->where('titulo', 'LIKE', '%' . $dependiente->nombres . '%')
+                              ->orWhere('mensaje', 'LIKE', '%' . $dependiente->nombres . ' ' . $dependiente->apellidos . '%');
+                    });
+
+                $recordatoriosDependientes = $recordatoriosDependientes->merge($recordatoriosDep->get());
+            }
+
+            return $recordatoriosPropios->union($recordatoriosDependientes);
+        }
+
+        return $recordatoriosPropios;
     }
 
     /**
