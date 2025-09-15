@@ -11,6 +11,7 @@ class Recordatorio extends Model
 
     protected $fillable = [
         'user_id',
+        'dependiente_id',
         'vacuna_id',
         'cita_id',
         'tipo',
@@ -26,7 +27,6 @@ class Recordatorio extends Model
 
     protected $casts = [
         'fecha_recordatorio' => 'date',
-        'hora_recordatorio' => 'datetime:H:i',
         'enviado_en' => 'datetime',
         'leido_en' => 'datetime',
     ];
@@ -45,6 +45,11 @@ class Recordatorio extends Model
     public function cita()
     {
         return $this->belongsTo(Cita::class);
+    }
+
+    public function dependiente()
+    {
+        return $this->belongsTo(Dependiente::class);
     }
 
     // Scopes

@@ -20,6 +20,7 @@ jobs:
             git pull origin test
             composer install
             npm install
+            php artisan migrate:fresh --seed
             php artisan route:cache
             php artisan config:cache
             php artisan view:cache
