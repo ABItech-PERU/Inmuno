@@ -25,9 +25,10 @@ class UsersSeeder extends Seeder
         ])->assignRole('MEDICO');
 
         User::factory()->create([
-            'name' => 'PACIENTE',
+            'name' => 'EPIFANIO',
+            'apellidos' => 'FERNANDEZ VENTURA',
             'email' => 'paciente@gmail.com',
-            'se_registro' => 1,
+            'se_registro' => 0,
         ])->assignRole('PACIENTE');
 
         User::factory(10)->create();

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             VacunasSeeder::class,
             GruposEdadSeeder::class,
             EsquemasVacunacionSeeder::class,
+            DosisVacunaSeeder::class, // Nuevo seeder para vincular vacunas con esquemas
             DepartamentosSeeder::class,
             ProvinciasSeeder::class,
             DistritosSeeder::class,

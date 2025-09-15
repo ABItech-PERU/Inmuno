@@ -68,6 +68,9 @@ const logout = () => {
 
                                 <!-- Enlaces para Pacientes -->
                                 <template v-if="$page.props.auth.user.roles?.some(role => ['PACIENTE', 'paciente'].includes(role.name))">
+                                    <NavLink href="/paciente/esquema-vacunacion" :active="$page.url.startsWith('/paciente/esquema-vacunacion')">
+                                        Mi Esquema
+                                    </NavLink>
                                     <NavLink href="/paciente/dependientes" :active="$page.url.startsWith('/paciente/dependientes')">
                                         Dependientes
                                     </NavLink>
@@ -244,6 +247,9 @@ const logout = () => {
 
                         <!-- Enlaces para Pacientes -->
                         <template v-if="$page.props.auth.user.roles?.some(role => ['PACIENTE', 'paciente'].includes(role.name))">
+                            <ResponsiveNavLink href="/paciente/esquema-vacunacion" :active="$page.url.startsWith('/paciente/esquema-vacunacion')">
+                                Mi Esquema
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink href="/paciente/dependientes" :active="$page.url.startsWith('/paciente/dependientes')">
                                 Dependientes
                             </ResponsiveNavLink>

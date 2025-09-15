@@ -30,6 +30,10 @@ class Dependiente extends Model
         'activo' => 'boolean',
     ];
 
+    protected $appends = [
+        'nombre'
+    ];
+
     // Relaciones
     public function tutor()
     {
@@ -96,6 +100,14 @@ class Dependiente extends Model
     public function getEdadEnMesesAttribute()
     {
         return Carbon::parse($this->fecha_nacimiento)->diffInMonths(now());
+    }
+
+    /**
+     * Accessor para obtener el nombre completo
+     */
+    public function getNombreAttribute()
+    {
+        return trim($this->nombres . ' ' . $this->apellidos);
     }
 
     public function esMenorDeEdad()

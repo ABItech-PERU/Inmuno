@@ -4,6 +4,7 @@ use App\Actions\Fortify\CompletarRegistro;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\Paciente\DependientesController;
 use App\Http\Controllers\Paciente\RecordatoriosController;
+use App\Http\Controllers\Paciente\EsquemaVacunacionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -87,5 +88,15 @@ Route::middleware([
 
         // Módulo de Dependientes
         Route::resource('dependientes', DependientesController::class);
+
+        // Módulo de Esquema de Vacunación
+        Route::get('/esquema-vacunacion', [EsquemaVacunacionController::class, 'index'])
+            ->name('esquema-vacunacion.index');
+        Route::get('/esquema-vacunacion/{persona_tipo}/{persona_id?}', [EsquemaVacunacionController::class, 'show'])
+            ->name('esquema-vacunacion.show');
+        Route::post('/esquema-vacunacion/marcar-aplicada', [EsquemaVacunacionController::class, 'marcarAplicada'])
+            ->name('esquema-vacunacion.marcar-aplicada');
+        Route::get('/api/centros-salud', [EsquemaVacunacionController::class, 'getCentrosSalud'])
+            ->name('api.centros-salud');
     });
 });

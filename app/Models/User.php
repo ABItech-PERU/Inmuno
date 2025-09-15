@@ -187,6 +187,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Mutator para name: guardar en mayúsculas UTF-8
+     */
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = $value === null ? null : mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * Mutator para apellidos: guardar en mayúsculas UTF-8
+     */
+    public function setApellidosAttribute($value)
+    {
+        $this->attributes['apellidos'] = $value === null ? null : mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
      * Verificar si este usuario tiene dependientes
      */
     public function tieneDependientes()

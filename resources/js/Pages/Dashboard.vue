@@ -60,12 +60,12 @@ const quickActions = computed(() => {
                 route: '/paciente/dependientes'
             },
             {
-                title: 'Esquema de vacunación',
-                subtitle: 'Tu calendario de vacunas personalizado',
+                title: 'Mi Esquema de vacunación',
+                subtitle: 'Consulta tu historial y calendario personalizado de vacunas',
                 icon: CalendarDaysIcon,
                 color: 'bg-gradient-to-r from-teal-400 to-cyan-400',
                 textColor: 'text-teal-700',
-                route: 'vaccination-schedule.show'
+                route: '/paciente/esquema-vacunacion'
             },
             {
                 title: 'Recordatorios de Vacunación',
