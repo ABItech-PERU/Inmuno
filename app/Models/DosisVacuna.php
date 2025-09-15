@@ -16,7 +16,12 @@ class DosisVacuna extends Model
         'edad_aplicacion',
         'dias_despues_anterior',
         'es_refuerzo',
-        'observaciones'
+        'edad_minima_dias',
+        'edad_maxima_dias',
+        'observaciones',
+        'justificacion_medica',
+        'es_obligatoria',
+        'activo'
     ];
 
     protected $casts = [
@@ -24,6 +29,8 @@ class DosisVacuna extends Model
         'edad_aplicacion' => 'integer',
         'dias_despues_anterior' => 'integer',
         'es_refuerzo' => 'boolean',
+        'es_obligatoria' => 'boolean',
+        'activo' => 'boolean',
     ];
 
     // Relaciones

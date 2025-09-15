@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('recordatorios', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // paciente
+            $table->foreignId('dependiente_id')->nullable()->constrained('dependientes')->onDelete('cascade'); // para recordatorios de dependientes
             $table->foreignId('vacuna_id')->nullable()->constrained('vacunas')->onDelete('set null');
             $table->foreignId('cita_id')->nullable()->constrained('citas')->onDelete('set null');
-            $table->string('tipo'); // vacuna_proxima, cita_programada, refuerzo_pendiente
+            $table->string('tipo'); // vacuna_proxima, cita_programada, refuerzo_pendiente, recordatorio_personal
             $table->string('titulo');
-            $table->text('mensaje');
+            $table->text('mensaje')->nullable(); // mensaje opcional
             $table->date('fecha_recordatorio');
             $table->time('hora_recordatorio')->nullable();
             $table->string('estado')->default('pendiente'); // pendiente, enviado, leido
