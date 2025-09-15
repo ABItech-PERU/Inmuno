@@ -44,6 +44,19 @@ Route::middleware([
         Route::patch('vacunas/{vacuna}/toggle-status', [App\Http\Controllers\Admin\VacunaController::class, 'toggleStatus'])
             ->name('vacunas.toggle-status');
 
+        // Gestión de Esquemas de Vacunación
+        Route::resource('esquemas', App\Http\Controllers\Admin\EsquemaController::class);
+        Route::get('esquemas/{esquema}/vacunas', [App\Http\Controllers\Admin\EsquemaController::class, 'manageVacunas'])
+            ->name('esquemas.vacunas');
+        Route::post('esquemas/{esquema}/vacunas/store', [App\Http\Controllers\Admin\EsquemaController::class, 'storeDosisVacuna'])
+            ->name('esquemas.vacunas.store');
+        Route::patch('esquemas/{esquema}/dosis/{dosis}', [App\Http\Controllers\Admin\EsquemaController::class, 'updateDosisVacuna'])
+            ->name('esquemas.dosis.update');
+        Route::delete('esquemas/{esquema}/dosis/{dosis}', [App\Http\Controllers\Admin\EsquemaController::class, 'destroyDosisVacuna'])
+            ->name('esquemas.dosis.destroy');
+        Route::get('api/vacunas-disponibles', [App\Http\Controllers\Admin\EsquemaController::class, 'getVacunasDisponibles'])
+            ->name('api.vacunas-disponibles');
+
         // Gestión de Centros de Salud
         Route::resource('centros-salud', App\Http\Controllers\Admin\CentroSaludController::class);
         Route::patch('centros-salud/{centros_salud}/toggle-status', [App\Http\Controllers\Admin\CentroSaludController::class, 'toggleStatus'])

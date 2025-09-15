@@ -122,12 +122,28 @@ const quickActions = computed(() => {
     } else if (isAdmin) {
         actions = [
             {
+                title: 'Esquemas de Vacunación',
+                subtitle: 'Gestionar protocolos y calendarios de vacunación',
+                icon: ClipboardDocumentListIcon,
+                color: 'bg-gradient-to-r from-blue-400 to-blue-600',
+                textColor: 'text-blue-700',
+                route: '/admin/esquemas'
+            },
+            {
                 title: 'Gestión de Vacunas',
                 subtitle: 'Administrar catálogo de vacunas',
                 icon: BeakerIcon,
                 color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
                 textColor: 'text-cyan-700',
                 route: '/admin/vacunas'
+            },
+            {
+                title: 'Centros de Salud',
+                subtitle: 'Administrar ubicaciones de vacunación',
+                icon: MapPinIcon,
+                color: 'bg-gradient-to-r from-red-400 to-pink-400',
+                textColor: 'text-red-700',
+                route: '/admin/centros-salud'
             },
             {
                 title: 'Usuarios del Sistema',
@@ -145,14 +161,6 @@ const quickActions = computed(() => {
                 textColor: 'text-cyan-700',
                 route: '/admin/reports'
             },
-            {
-                title: 'Centros de Salud',
-                subtitle: 'Administrar ubicaciones de vacunación',
-                icon: MapPinIcon,
-                color: 'bg-gradient-to-r from-red-400 to-pink-400',
-                textColor: 'text-red-700',
-                route: '/admin/centros-salud'
-            }
         ];
     } else {
         // Fallback: si no se detecta ningún rol específico, mostrar acciones básicas
@@ -212,10 +220,12 @@ const additionalInfo = computed(() => [
                                 Sistema Activo
                             </div>
                             <!-- Debug temporal - mostrar rol actual -->
-                            <div v-if="user.roles && user.roles.length > 0" class="flex items-center bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">
+                            <div v-if="user.roles && user.roles.length > 0"
+                                class="flex items-center bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">
                                 Rol: {{ user.roles[0].name }}
                             </div>
-                            <div v-else class="flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
+                            <div v-else
+                                class="flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
                                 Sin roles
                             </div>
                         </div>
@@ -227,7 +237,7 @@ const additionalInfo = computed(() => [
             <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
                 <!-- Stats Section (solo para médicos y administradores) -->
                 <div v-if="user.roles?.some(role => ['MEDICO', 'ADMINISTRADOR', 'medico', 'administrador'].includes(role.name))"
-                     class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                     <!-- Header con título -->
                     <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
                         <h3 class="text-base sm:text-lg font-medium text-gray-900">
@@ -246,7 +256,8 @@ const additionalInfo = computed(() => [
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas }}</p>
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas
+                                            }}</p>
                                         <p class="text-sm text-gray-500">Vacunas Aplicadas</p>
                                     </div>
                                 </div>
@@ -260,7 +271,8 @@ const additionalInfo = computed(() => [
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.pacientesVacunados }}</p>
+                                        <p class="text-2xl font-semibold text-gray-900">{{
+                                            dashboardStats.pacientesVacunados }}</p>
                                         <p class="text-sm text-gray-500">Pacientes Vacunados</p>
                                     </div>
                                 </div>
@@ -274,7 +286,8 @@ const additionalInfo = computed(() => [
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.citasPendientes }}</p>
+                                        <p class="text-2xl font-semibold text-gray-900">{{
+                                            dashboardStats.citasPendientes }}</p>
                                         <p class="text-sm text-gray-500">Citas Pendientes</p>
                                     </div>
                                 </div>
@@ -288,7 +301,8 @@ const additionalInfo = computed(() => [
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.recordatoriosHoy }}</p>
+                                        <p class="text-2xl font-semibold text-gray-900">{{
+                                            dashboardStats.recordatoriosHoy }}</p>
                                         <p class="text-sm text-gray-500">Recordatorios Hoy</p>
                                     </div>
                                 </div>
@@ -309,33 +323,35 @@ const additionalInfo = computed(() => [
                     <!-- Grid de acciones -->
                     <div class="p-4 sm:p-6">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <Link v-for="action in quickActions"
-                                 :key="action.title"
-                                 :href="action.route"
-                                 class="block group cursor-pointer transition-all duration-200">
-                                <div class="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-md transition-all">
-                                    <div class="p-4">
-                                        <div class="flex items-center space-x-4">
-                                            <div :class="[action.color, 'w-12 h-12 rounded-lg flex items-center justify-center shadow-sm']">
-                                                <component :is="action.icon" class="w-6 h-6 text-white" />
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <h4 :class="[action.textColor, 'text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors']">
-                                                    {{ action.title }}
-                                                </h4>
-                                                <p class="text-gray-500 text-sm">
-                                                    {{ action.subtitle }}
-                                                </p>
-                                            </div>
-                                            <div class="flex-shrink-0">
-                                                <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
-                                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                                </svg>
-                                            </div>
+                            <Link v-for="action in quickActions" :key="action.title" :href="action.route"
+                                class="block group cursor-pointer transition-all duration-200">
+                            <div
+                                class="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-md transition-all">
+                                <div class="p-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div
+                                            :class="[action.color, 'w-12 h-12 rounded-lg flex items-center justify-center shadow-sm']">
+                                            <component :is="action.icon" class="w-6 h-6 text-white" />
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4
+                                                :class="[action.textColor, 'text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors']">
+                                                {{ action.title }}
+                                            </h4>
+                                            <p class="text-gray-500 text-sm">
+                                                {{ action.subtitle }}
+                                            </p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                             </Link>
                         </div>
                     </div>
@@ -355,15 +371,16 @@ const additionalInfo = computed(() => [
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Quick Info Section -->
                             <div class="space-y-4">
-                                <div v-for="info in additionalInfo"
-                                     :key="info.title"
-                                     class="group cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-3 -m-3">
+                                <div v-for="info in additionalInfo" :key="info.title"
+                                    class="group cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-3 -m-3">
                                     <div class="flex items-center space-x-4">
-                                        <div :class="[info.color, 'w-10 h-10 rounded-lg flex items-center justify-center shadow-sm']">
+                                        <div
+                                            :class="[info.color, 'w-10 h-10 rounded-lg flex items-center justify-center shadow-sm']">
                                             <component :is="info.icon" class="w-5 h-5 text-white" />
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h4 :class="[info.textColor, 'font-medium group-hover:text-gray-900 transition-colors']">
+                                            <h4
+                                                :class="[info.textColor, 'font-medium group-hover:text-gray-900 transition-colors']">
                                                 {{ info.title }}
                                             </h4>
                                             <p class="text-gray-500 text-sm mt-1">
@@ -372,8 +389,9 @@ const additionalInfo = computed(() => [
                                         </div>
                                         <div class="flex-shrink-0">
                                             <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors"
-                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
                                             </svg>
                                         </div>
                                     </div>
@@ -381,19 +399,23 @@ const additionalInfo = computed(() => [
                             </div>
 
                             <!-- Tips Section -->
-                            <div class="bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-lg border border-cyan-200 p-4">
+                            <div
+                                class="bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-lg border border-cyan-200 p-4">
                                 <div class="flex items-start space-x-3">
                                     <div class="flex-shrink-0">
                                         <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <svg class="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
                                     </div>
                                     <div>
                                         <h4 class="text-sm font-semibold text-cyan-800 mb-2">Consejo del Sistema</h4>
                                         <p class="text-xs text-cyan-700 leading-relaxed">
-                                            Mantén siempre actualizado tu esquema de vacunación. La prevención es la mejor medicina para cuidar tu salud y la de tu comunidad.
+                                            Mantén siempre actualizado tu esquema de vacunación. La prevención es la
+                                            mejor medicina para cuidar tu salud y la de tu comunidad.
                                         </p>
                                     </div>
                                 </div>

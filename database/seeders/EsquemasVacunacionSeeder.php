@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Vacuna;
 use App\Models\EsquemaVacunacion;
-use App\Models\DosisVacuna;
 use Illuminate\Database\Seeder;
 
 class EsquemasVacunacionSeeder extends Seeder
@@ -14,270 +12,162 @@ class EsquemasVacunacionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear vacunas básicas si no existen
-        $vacunas = [
+        // Crear esquemas de vacunación según protocolo nacional peruano
+        $esquemas = [
+            // Esquemas para niños y niñas hasta los 5 años
             [
-                'nombre' => 'BCG',
-                'descripcion' => 'Vacuna contra la tuberculosis',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Bacteriana',
-                'dosis_requeridas' => 1,
-                'edad_minima' => 0,
-                'edad_maxima' => 1,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'Hepatitis B',
-                'descripcion' => 'Vacuna contra la hepatitis B',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Viral',
-                'dosis_requeridas' => 3,
-                'edad_minima' => 0,
-                'edad_maxima' => 60,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'Pentavalente',
-                'descripcion' => 'Vacuna contra difteria, tétanos, tos ferina, hepatitis B y Haemophilus influenzae tipo b',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Combinada',
-                'dosis_requeridas' => 3,
-                'edad_minima' => 2,
-                'edad_maxima' => 24,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'Polio',
-                'descripcion' => 'Vacuna contra la poliomielitis',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Viral',
-                'dosis_requeridas' => 3,
-                'edad_minima' => 2,
-                'edad_maxima' => 18,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'Rotavirus',
-                'descripcion' => 'Vacuna contra el rotavirus',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Viral',
-                'dosis_requeridas' => 2,
-                'edad_minima' => 2,
-                'edad_maxima' => 6,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'Neumococo',
-                'descripcion' => 'Vacuna contra el neumococo',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Bacteriana',
-                'dosis_requeridas' => 3,
-                'edad_minima' => 2,
-                'edad_maxima' => 24,
-                'activa' => true
-            ],
-            [
-                'nombre' => 'SPR',
-                'descripcion' => 'Vacuna contra sarampión, paperas y rubéola',
-                'fabricante' => 'Laboratorio Nacional',
-                'tipo' => 'Viral',
-                'dosis_requeridas' => 2,
-                'edad_minima' => 12,
-                'edad_maxima' => 24,
-                'activa' => true
-            ]
-        ];
-
-        foreach ($vacunas as $vacunaData) {
-            Vacuna::firstOrCreate(
-                ['nombre' => $vacunaData['nombre']],
-                $vacunaData
-            );
-        }
-
-        // Crear esquema de vacunación para niños (0-24 meses)
-        $esquemaNinos = EsquemaVacunacion::firstOrCreate(
-            ['nombre' => 'Esquema Regular para Niños'],
-            [
-                'descripcion' => 'Esquema de vacunación regular para niños de 0 a 24 meses según el MINSA',
-                'grupo_edad' => 'niños',
+                'nombre' => 'Recién Nacidos',
+                'descripcion' => 'Vacunas aplicadas al momento del nacimiento: BCG (protege contra tuberculosis) y primera dosis de Hepatitis B (protege el hígado)',
+                'grupo_edad' => 'Recién nacidos',
                 'edad_inicio' => 0,
+                'edad_fin' => 0,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '2 Meses',
+                'descripcion' => 'Primera serie de vacunas: Pentavalente (difteria, tétanos, tos ferina, hepatitis B, influenza tipo B), Polio (parálisis infantil), Rotavirus (diarreas severas) y Neumococo (neumonía)',
+                'grupo_edad' => '2 meses',
+                'edad_inicio' => 2,
+                'edad_fin' => 2,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '4 Meses',
+                'descripcion' => 'Segunda dosis de refuerzo: Pentavalente, Polio, Rotavirus y Neumococo para fortalecer la protección iniciada a los 2 meses',
+                'grupo_edad' => '4 meses',
+                'edad_inicio' => 4,
+                'edad_fin' => 4,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '6 Meses',
+                'descripcion' => 'Tercera dosis de Pentavalente y Polio para completar la serie básica, más primera dosis de Influenza (gripe) para protección respiratoria',
+                'grupo_edad' => '6 meses',
+                'edad_inicio' => 6,
+                'edad_fin' => 6,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '7 Meses',
+                'descripcion' => 'Segunda dosis de Influenza para completar la protección contra la gripe en bebés menores de 2 años',
+                'grupo_edad' => '7 meses',
+                'edad_inicio' => 7,
+                'edad_fin' => 7,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '12 Meses',
+                'descripcion' => 'Vacunas del primer año: SPR (sarampión, paperas, rubéola), tercera dosis de Neumococo, Varicela (evita las "viruelas locas") e Influenza anual',
+                'grupo_edad' => '12 meses',
+                'edad_inicio' => 12,
+                'edad_fin' => 12,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '15 Meses',
+                'descripcion' => 'Fiebre Amarilla (previene enfermedad grave transmitida por mosquitos) y Hepatitis A (protege el hígado contra infecciones alimentarias)',
+                'grupo_edad' => '15 meses',
+                'edad_inicio' => 15,
+                'edad_fin' => 15,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '18 Meses',
+                'descripcion' => 'Primeras vacunas de refuerzo: DPT (difteria, tos ferina, tétanos), Polio y segunda dosis de SPR para mantener alta la protección',
+                'grupo_edad' => '18 meses',
+                'edad_inicio' => 18,
+                'edad_fin' => 18,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '2 Años',
+                'descripcion' => 'Vacuna anual contra la Influenza para prevenir gripes y complicaciones respiratorias durante la temporada de mayor riesgo',
+                'grupo_edad' => '2 años',
+                'edad_inicio' => 24,
                 'edad_fin' => 24,
                 'obligatorio' => true,
                 'activo' => true
-            ]
-        );
-
-        // Obtener vacunas
-        $bcg = Vacuna::where('nombre', 'BCG')->first();
-        $hepatitisB = Vacuna::where('nombre', 'Hepatitis B')->first();
-        $pentavalente = Vacuna::where('nombre', 'Pentavalente')->first();
-        $polio = Vacuna::where('nombre', 'Polio')->first();
-        $rotavirus = Vacuna::where('nombre', 'Rotavirus')->first();
-        $neumococo = Vacuna::where('nombre', 'Neumococo')->first();
-        $spr = Vacuna::where('nombre', 'SPR')->first();
-
-        // Dosis para el esquema de niños
-        $dosis = [
-            // BCG - Al nacer
+            ],
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $bcg->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 0,
-                'es_refuerzo' => false,
-                'observaciones' => 'Aplicar al recién nacido'
+                'nombre' => '3 Años',
+                'descripcion' => 'Vacuna anual contra la Influenza para mantener la protección contra gripes y prevenir complicaciones en niños pequeños',
+                'grupo_edad' => '3 años',
+                'edad_inicio' => 36,
+                'edad_fin' => 36,
+                'obligatorio' => true,
+                'activo' => true
+            ],
+            [
+                'nombre' => '4 Años',
+                'descripcion' => 'Vacuna anual de Influenza y segundos refuerzos de DPT y Polio antes del ingreso escolar para garantizar protección completa',
+                'grupo_edad' => '4 años',
+                'edad_inicio' => 48,
+                'edad_fin' => 48,
+                'obligatorio' => true,
+                'activo' => true
             ],
 
-            // Hepatitis B - Al nacer, 2 y 6 meses
+            // Esquemas para personas mayores de 5 años
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $hepatitisB->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 0,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis al nacer'
+                'nombre' => 'Adolescentes VPH',
+                'descripcion' => 'Vacuna contra el Virus del Papiloma Humano (VPH) para prevenir cáncer de cuello uterino, verrugas genitales y otros cánceres relacionados',
+                'grupo_edad' => '9-13 años',
+                'edad_inicio' => 108, // 9 años en meses
+                'edad_fin' => 156,   // 13 años en meses
+                'obligatorio' => true,
+                'activo' => true
             ],
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $hepatitisB->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 2,
-                'es_refuerzo' => false,
-                'observaciones' => 'Segunda dosis a los 2 meses'
+                'nombre' => 'Jóvenes VPH',
+                'descripcion' => 'Vacuna VPH para adolescentes de 14-18 años que no recibieron la vacuna en la edad recomendada (esquema de recuperación)',
+                'grupo_edad' => '14-18 años',
+                'edad_inicio' => 168, // 14 años en meses
+                'edad_fin' => 216,    // 18 años en meses
+                'obligatorio' => false,
+                'activo' => true
             ],
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $hepatitisB->id,
-                'numero_dosis' => 3,
-                'edad_aplicacion' => 6,
-                'es_refuerzo' => false,
-                'observaciones' => 'Tercera dosis a los 6 meses'
-            ],
-
-            // Pentavalente - 2, 4 y 6 meses
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $pentavalente->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 2,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis a los 2 meses'
+                'nombre' => 'Adultos',
+                'descripcion' => 'Vacunas recomendadas para adultos: Fiebre Amarilla (para viajeros a zonas endémicas), Hepatitis B (trabajadores de salud) e Influenza anual (personas con enfermedades crónicas)',
+                'grupo_edad' => 'Adultos',
+                'edad_inicio' => 216, // 18 años en meses
+                'edad_fin' => 720,    // 60 años en meses
+                'obligatorio' => false,
+                'activo' => true
             ],
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $pentavalente->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 4,
-                'es_refuerzo' => false,
-                'observaciones' => 'Segunda dosis a los 4 meses'
+                'nombre' => 'Gestantes',
+                'descripcion' => 'Vacunas esenciales durante el embarazo: Hepatitis B, DT (difteria y tétanos), Tdap (protege al bebé de tos ferina) e Influenza para protección madre-bebé',
+                'grupo_edad' => 'Gestantes',
+                'edad_inicio' => null,
+                'edad_fin' => null,
+                'obligatorio' => true,
+                'activo' => true
             ],
             [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $pentavalente->id,
-                'numero_dosis' => 3,
-                'edad_aplicacion' => 6,
-                'es_refuerzo' => false,
-                'observaciones' => 'Tercera dosis a los 6 meses'
-            ],
-
-            // Polio - 2, 4 y 6 meses
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $polio->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 2,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis a los 2 meses'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $polio->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 4,
-                'es_refuerzo' => false,
-                'observaciones' => 'Segunda dosis a los 4 meses'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $polio->id,
-                'numero_dosis' => 3,
-                'edad_aplicacion' => 6,
-                'es_refuerzo' => false,
-                'observaciones' => 'Tercera dosis a los 6 meses'
-            ],
-
-            // Rotavirus - 2 y 4 meses
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $rotavirus->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 2,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis a los 2 meses'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $rotavirus->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 4,
-                'es_refuerzo' => false,
-                'observaciones' => 'Segunda dosis a los 4 meses'
-            ],
-
-            // Neumococo - 2, 4 y 12 meses
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $neumococo->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 2,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis a los 2 meses'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $neumococo->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 4,
-                'es_refuerzo' => false,
-                'observaciones' => 'Segunda dosis a los 4 meses'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $neumococo->id,
-                'numero_dosis' => 3,
-                'edad_aplicacion' => 12,
-                'es_refuerzo' => true,
-                'observaciones' => 'Refuerzo al año'
-            ],
-
-            // SPR - 12 y 18 meses
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $spr->id,
-                'numero_dosis' => 1,
-                'edad_aplicacion' => 12,
-                'es_refuerzo' => false,
-                'observaciones' => 'Primera dosis al año'
-            ],
-            [
-                'esquema_vacunacion_id' => $esquemaNinos->id,
-                'vacuna_id' => $spr->id,
-                'numero_dosis' => 2,
-                'edad_aplicacion' => 18,
-                'es_refuerzo' => true,
-                'observaciones' => 'Refuerzo a los 18 meses'
+                'nombre' => 'Adultos Mayores',
+                'descripcion' => 'Vacunas para adultos mayores de 60 años: Influenza anual (previene hospitalizaciones) y Neumococo (evita neumonía grave) debido a mayor riesgo de complicaciones',
+                'grupo_edad' => 'Adultos mayores',
+                'edad_inicio' => 720, // 60 años en meses
+                'edad_fin' => null,
+                'obligatorio' => true,
+                'activo' => true
             ]
         ];
 
-        foreach ($dosis as $dosisData) {
-            DosisVacuna::firstOrCreate(
-                [
-                    'esquema_vacunacion_id' => $dosisData['esquema_vacunacion_id'],
-                    'vacuna_id' => $dosisData['vacuna_id'],
-                    'numero_dosis' => $dosisData['numero_dosis']
-                ],
-                $dosisData
+        // Crear los esquemas
+        foreach ($esquemas as $esquemaData) {
+            EsquemaVacunacion::firstOrCreate(
+                ['nombre' => $esquemaData['nombre']],
+                $esquemaData
             );
         }
     }

@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             UsersSeeder::class,
             VacunasSeeder::class,
+            GruposEdadSeeder::class,
+            EsquemasVacunacionSeeder::class,
             DepartamentosSeeder::class,
             ProvinciasSeeder::class,
             DistritosSeeder::class,

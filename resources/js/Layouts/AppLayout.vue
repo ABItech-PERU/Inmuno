@@ -57,17 +57,14 @@ const logout = () => {
                                     <NavLink :href="'/admin/vacunas'" :active="$page.url.startsWith('/admin/vacunas')">
                                         Vacunas
                                     </NavLink>
+                                    <NavLink :href="'/admin/esquemas'" :active="$page.url.startsWith('/admin/esquemas')">
+                                        Esquemas
+                                    </NavLink>
                                     <NavLink :href="'/admin/users'" :active="$page.url.startsWith('/admin/users')">
                                         Usuarios
                                     </NavLink>
                                 </template>
 
-                                <!-- Enlaces para Médicos -->
-                                <template v-if="$page.props.auth.user.roles?.some(role => ['MEDICO', 'medico', 'ADMINISTRADOR', 'administrador'].includes(role.name))">
-                                    <NavLink :href="'/citas'" :active="$page.url.startsWith('/citas')">
-                                        Citas
-                                    </NavLink>
-                                </template>
 
                                 <!-- Enlaces para Pacientes -->
                                 <template v-if="$page.props.auth.user.roles?.some(role => ['PACIENTE', 'paciente'].includes(role.name))">
@@ -229,6 +226,9 @@ const logout = () => {
                         <template v-if="$page.props.auth.user.roles?.some(role => ['ADMINISTRADOR', 'administrador'].includes(role.name))">
                             <ResponsiveNavLink :href="'/admin/vacunas'" :active="$page.url.startsWith('/admin/vacunas')">
                                 Vacunas
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="'/admin/esquemas'" :active="$page.url.startsWith('/admin/esquemas')">
+                                Esquemas
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="'/admin/users'" :active="$page.url.startsWith('/admin/users')">
                                 Usuarios

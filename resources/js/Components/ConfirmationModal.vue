@@ -1,7 +1,7 @@
 <script setup>
 import Modal from './Modal.vue';
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'confirm']);
 
 defineProps({
     show: {
@@ -16,14 +16,21 @@ defineProps({
         type: Boolean,
         default: true,
     },
+    processing: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const close = () => {
     emit('close');
 };
+
+const confirm = () => {
+    emit('confirm');
+};
 </script>
 
-<template>
 <template>
     <Modal
         :show="show"
@@ -51,9 +58,25 @@ const close = () => {
             </div>
         </div>
 
-        <div class="flex flex-row justify-end px-6 py-4 bg-gray-100 text-right">
-            <slot name="footer" />
+        <div class="flex flex-row justify-end px-6 py-4 bg-gray-100 text-right space-x-3">
+            <button
+                type="button"
+                @click="close"
+                :disabled="processing"
+                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Cancelar
+            </button>
+
+            <button
+                type="button"
+                @click="confirm"
+                :disabled="processing"
+                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <span v-if="processing">Eliminando...</span>
+                <span v-else>Eliminar</span>
+            </button>
         </div>
     </Modal>
-</template>
 </template>
