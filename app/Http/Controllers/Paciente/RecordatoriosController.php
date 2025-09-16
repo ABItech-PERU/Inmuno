@@ -274,6 +274,20 @@ class RecordatoriosController extends Controller
             'metodo_envio' => 'sistema'
         ]);
 
+        // Enviar confirmación de creación (en background si hay cola configurada)
+        try {
+            // Disparar job directamente si la cola está configurada
+            \App\Jobs\EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
+        } catch (\Throwable $e) {
+            // Si falla (no hay cola), enviar notificación sincrónica usando facade
+            try {
+                \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+            } catch (\Throwable $e) {
+                // registrar y continuar
+                \Illuminate\Support\Facades\Log::error('No se pudo enviar confirmación de recordatorio: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('paciente.recordatorios.index')
             ->with('success', 'Recordatorio creado exitosamente.');
     }
