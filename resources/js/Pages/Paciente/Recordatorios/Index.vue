@@ -17,11 +17,7 @@ import {
     MagnifyingGlassIcon,
     FunnelIcon
 } from '@heroicons/vue/24/outline';
-import {
-    BellIcon as BellIconSolid,
-    CalendarDaysIcon as CalendarIconSolid,
-    CheckCircleIcon as CheckIconSolid
-} from '@heroicons/vue/24/solid';
+import { parseDateLocal, formatDateShort, formatDateLong } from '@/Utils/date';
 
 const page = usePage();
 const props = defineProps({
@@ -70,30 +66,6 @@ const hasFilters = computed(() => {
            filtros.value.tipo ||
            (filtros.value.estado && filtros.value.estado !== 'todos');
 });
-
-const estadoColors = {
-    'pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'enviado': 'bg-blue-100 text-blue-800 border-blue-200',
-    'leido': 'bg-green-100 text-green-800 border-green-200'
-};
-
-const tipoIcons = {
-    'vacuna_proxima': BellIconSolid,
-    'cita_programada': CalendarIconSolid,
-    'refuerzo_pendiente': ExclamationTriangleIcon,
-    'recordatorio_personal': CheckIconSolid
-};
-
-// Métodos
-const aplicarFiltros = () => {
-    router.get(route('paciente.recordatorios.index'), {
-        estado: filtroEstado.value,
-        tipo: filtroTipo.value
-    }, {
-        preserveState: true,
-        preserveScroll: true
-    });
-};
 
 const abrirModalNuevo = () => {
     formularioNuevo.value = {
@@ -199,31 +171,22 @@ const closeDeleteModal = () => {
     }
 };
 
-const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-};
-
-const formatearFechaCompleta = (fecha, hora) => {
-    const fechaObj = new Date(fecha + (hora ? 'T' + hora : ''));
-    return fechaObj.toLocaleDateString('es-PE', {
-        weekday: 'long',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-    }) + (hora ? ` a las ${hora}` : '');
-};
+// Usar util compartido para parsing/formatos de fecha
+const formatearFecha = (fecha) => formatDateShort(fecha);
+const formatearFechaCompleta = (fecha, hora) => formatDateLong(fecha, hora);
 
 const esVencido = (fecha) => {
-    return new Date(fecha) < new Date().setHours(0,0,0,0);
+    const dt = parseDateLocal(fecha);
+    if (!dt) return false;
+    const inicioHoy = new Date(); inicioHoy.setHours(0,0,0,0);
+    return dt < inicioHoy;
 };
 
 const esHoy = (fecha) => {
-    const hoy = new Date().toDateString();
-    return new Date(fecha).toDateString() === hoy;
+    const dt = parseDateLocal(fecha);
+    if (!dt) return false;
+    const hoy = new Date();
+    return dt.getFullYear() === hoy.getFullYear() && dt.getMonth() === hoy.getMonth() && dt.getDate() === hoy.getDate();
 };
 
 // Métodos adicionales para la tabla

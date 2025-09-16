@@ -292,6 +292,7 @@ import {
     CalendarIcon
 } from '@heroicons/vue/24/outline';
 import Toast from '@/Components/Toast.vue';
+import { parseDateLocal, formatDateShort, formatDateLong } from '@/Utils/date';
 
 const props = defineProps({
     recordatorio: Object,
@@ -305,12 +306,17 @@ const toastType = ref('success');
 const toastTitle = ref('');
 const toastMessage = ref('');
 
+// Usar util compartido
+
 // Función para formatear fecha para input date
 const formatearFechaParaInput = (fecha) => {
     if (!fecha) return '';
-    const date = new Date(fecha);
-    if (isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+    const date = parseDateLocal(fecha);
+    if (!date) return '';
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 };
 
 // Función para formatear hora para input time
@@ -335,16 +341,21 @@ const form = useForm({
 // Fecha mínima (hoy)
 const fechaMinima = computed(() => {
     const hoy = new Date();
-    return hoy.toISOString().split('T')[0];
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const d = String(hoy.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 });
 
 // Calcular días restantes
 const diasRestantes = computed(() => {
     if (!form.fecha_recordatorio) return 0;
 
-    const hoy = new Date();
-    const fechaRecordatorio = new Date(form.fecha_recordatorio);
-    const diferencia = Math.ceil((fechaRecordatorio - hoy) / (1000 * 60 * 60 * 24));
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fechaRecordatorio = parseDateLocal(form.fecha_recordatorio);
+    if (!fechaRecordatorio) return 0;
+    const fechaInicio = new Date(fechaRecordatorio.getFullYear(), fechaRecordatorio.getMonth(), fechaRecordatorio.getDate());
+    const diferencia = Math.ceil((fechaInicio - hoy) / (1000 * 60 * 60 * 24));
 
     return diferencia;
 });

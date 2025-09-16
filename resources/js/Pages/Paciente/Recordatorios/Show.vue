@@ -362,6 +362,7 @@ import {
     ExclamationTriangleIcon,
     EyeIcon
 } from '@heroicons/vue/24/outline'
+import { parseDateLocal, formatDateShort, formatDateLong } from '@/Utils/date';
 
 const props = defineProps({
     recordatorio: Object,
@@ -374,120 +375,13 @@ const showDeleteModal = ref(false);
 const isDeleting = ref(false);
 
 // Métodos
-const formatearFecha = (fecha) => {
-    if (!fecha) return 'No especificada';
-    const date = new Date(fecha);
-    return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-};
+// Usar util compartido
+// DEBUG TEMPORAL: exponer parse y valor original en template para depuración
+// Usar util compartido
+const formatearFecha = (fecha) => formatDateLong(fecha);
+const formatearFechaCompleta = (fecha, hora) => formatDateLong(fecha, hora);
 
-const formatearFechaCompleta = (fecha, hora) => {
-    try {
-        // Verificar si fecha existe y no es null/undefined
-        if (!fecha) {
-            return 'Fecha no especificada';
-        }
-
-        // Convertir fecha a string si es necesario
-        let fechaStr = fecha;
-        if (typeof fecha === 'object') {
-            fechaStr = fecha.toString();
-        }
-
-        // Crear fecha base
-        let fechaObj = new Date(fechaStr);
-
-        // Si la fecha base no es válida, intentar otros formatos
-        if (isNaN(fechaObj.getTime())) {
-            // Intentar formato ISO
-            fechaObj = new Date(fechaStr + 'T00:00:00');
-        }
-
-        // Si aún no es válida, retornar error
-        if (isNaN(fechaObj.getTime())) {
-            return 'Fecha no válida';
-        }
-
-        // Si hay hora, procesarla
-        if (hora) {
-            let tiempoStr = hora;
-
-            // Manejar diferentes tipos de hora
-            if (typeof hora === 'object') {
-                tiempoStr = hora.toString();
-            }
-
-            // Si contiene información de fecha (datetime), extraer solo tiempo
-            if (typeof tiempoStr === 'string' && (tiempoStr.includes('T') || tiempoStr.includes('-'))) {
-                try {
-                    const horaDate = new Date(tiempoStr);
-                    if (!isNaN(horaDate.getTime())) {
-                        tiempoStr = horaDate.toTimeString().slice(0, 5); // HH:mm
-                    }
-                } catch (e) {
-                    // Si falla, usar la hora original
-                }
-            }
-
-            // Si es formato HH:mm:ss, quedarse solo con HH:mm
-            if (typeof tiempoStr === 'string' && tiempoStr.includes(':')) {
-                const partes = tiempoStr.split(':');
-                if (partes.length >= 2) {
-                    tiempoStr = `${partes[0]}:${partes[1]}`;
-                }
-            }
-
-            // Crear fecha completa con hora
-            try {
-                const fechaCompleta = new Date(fechaStr + 'T' + tiempoStr + ':00');
-                if (!isNaN(fechaCompleta.getTime())) {
-                    fechaObj = fechaCompleta;
-                }
-            } catch (e) {
-                // Si falla, usar solo fecha
-            }
-        }
-
-        // Formatear resultado
-        const fechaFormateada = fechaObj.toLocaleDateString('es-PE', {
-            weekday: 'long',
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
-
-        if (hora) {
-            let horaFormateada = hora;
-
-            // Simplificar formateo de hora
-            if (typeof hora === 'string' && hora.includes(':')) {
-                const partes = hora.split(':');
-                horaFormateada = `${partes[0]}:${partes[1]}`;
-            } else if (typeof hora === 'object') {
-                try {
-                    const horaDate = new Date(hora);
-                    horaFormateada = horaDate.toLocaleTimeString('es-PE', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
-                } catch (e) {
-                    horaFormateada = hora.toString();
-                }
-            }
-
-            return `${fechaFormateada} a las ${horaFormateada}`;
-        }
-
-        return fechaFormateada;
-    } catch (error) {
-        console.error('Error formateando fecha:', error);
-        return 'Error al formatear fecha';
-    }
-};const formatearTipoRecordatorio = (tipo) => {
+const formatearTipoRecordatorio = (tipo) => {
     const tipos = {
         'recordatorio_personal': 'Recordatorio Personal',
         'vacuna_proxima': 'Vacuna Próxima',
