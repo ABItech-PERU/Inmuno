@@ -137,6 +137,32 @@ class RecordatoriosController extends Controller
             ->limit(5)
             ->get();
 
+        // Normalizar la salida de fechas: enviar solo Y-m-d para evitar ambigüedades de zona horaria
+        $recordatorios->getCollection()->transform(function ($r) {
+            if ($r->fecha_recordatorio) {
+                // $r->fecha_recordatorio es un Carbon (cast en el modelo)
+                $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
+            }
+            if ($r->hora_recordatorio) {
+                if ($r->hora_recordatorio instanceof \DateTime) {
+                    $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
+                }
+            }
+            return $r;
+        });
+
+        $proximosRecordatorios = $proximosRecordatorios->map(function ($r) {
+            if ($r->fecha_recordatorio) {
+                $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
+            }
+            if ($r->hora_recordatorio) {
+                if ($r->hora_recordatorio instanceof \DateTime) {
+                    $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
+                }
+            }
+            return $r;
+        });
+
         return Inertia::render('Paciente/Recordatorios/Index', [
             'recordatorios' => $recordatorios,
             'dependientes' => $dependientes,
@@ -204,7 +230,11 @@ class RecordatoriosController extends Controller
         }
 
         return Inertia::render('Paciente/Recordatorios/Show', [
-            'recordatorio' => $recordatorio,
+            'recordatorio' => (function($r) {
+                if ($r->fecha_recordatorio) $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
+                if ($r->hora_recordatorio && $r->hora_recordatorio instanceof \DateTime) $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
+                return $r;
+            })($recordatorio),
             'estadisticas' => $estadisticas,
             'recordatoriosRelacionados' => $recordatoriosRelacionados
         ]);
@@ -272,7 +302,11 @@ class RecordatoriosController extends Controller
         $vacunas = Vacuna::orderBy('nombre')->get();
 
         return Inertia::render('Paciente/Recordatorios/Edit', [
-            'recordatorio' => $recordatorio,
+            'recordatorio' => (function($r) {
+                if ($r->fecha_recordatorio) $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
+                if ($r->hora_recordatorio && $r->hora_recordatorio instanceof \DateTime) $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
+                return $r;
+            })($recordatorio),
             'dependientes' => $dependientes,
             'vacunas' => $vacunas
         ]);

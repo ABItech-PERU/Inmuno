@@ -544,6 +544,107 @@ class DistritosSeeder extends Seeder
             ['codigo_ubigeo' => '040810', 'nombre' => 'Tomepampa', 'provincia_codigo' => '0408'],
             ['codigo_ubigeo' => '040811', 'nombre' => 'Toro', 'provincia_codigo' => '0408'],
 
+
+            // HUÁNUCO - Huánuco (1001)
+            ['codigo_ubigeo' => '100101', 'nombre' => 'Huánuco', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100102', 'nombre' => 'Amarilis', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100103', 'nombre' => 'Chinchao', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100104', 'nombre' => 'Churubamba', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100105', 'nombre' => 'Margos', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100106', 'nombre' => 'Quisqui (Kichki)', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100107', 'nombre' => 'San Francisco de Cayrán', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100108', 'nombre' => 'San Pedro de Chaulán', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100109', 'nombre' => 'Santa María del Valle', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100110', 'nombre' => 'Yarumayo', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100111', 'nombre' => 'Pillco Marca', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100112', 'nombre' => 'Yacus', 'provincia_codigo' => '1001'],
+            ['codigo_ubigeo' => '100113', 'nombre' => 'San Pablo de Pillao', 'provincia_codigo' => '1001'],
+
+            // HUÁNUCO - Ambo (1002)
+            ['codigo_ubigeo' => '100201', 'nombre' => 'Ambo', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100202', 'nombre' => 'Cayna', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100203', 'nombre' => 'Colpas', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100204', 'nombre' => 'Conchamarca', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100205', 'nombre' => 'Huácar', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100206', 'nombre' => 'San Francisco', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100207', 'nombre' => 'San Rafael', 'provincia_codigo' => '1002'],
+            ['codigo_ubigeo' => '100208', 'nombre' => 'Tomay Kichwa', 'provincia_codigo' => '1002'],
+
+            // HUÁNUCO - Dos de Mayo (1003)
+            ['codigo_ubigeo' => '100301', 'nombre' => 'La Unión', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100307', 'nombre' => 'Chuquis', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100311', 'nombre' => 'Marías', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100313', 'nombre' => 'Pachas', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100316', 'nombre' => 'Quivilla', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100317', 'nombre' => 'Ripan', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100321', 'nombre' => 'Shunqui', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100322', 'nombre' => 'Sillapata', 'provincia_codigo' => '1003'],
+            ['codigo_ubigeo' => '100323', 'nombre' => 'Yanas', 'provincia_codigo' => '1003'],
+
+            // HUÁNUCO - Huacaybamba (1004)
+            ['codigo_ubigeo' => '100401', 'nombre' => 'Huacaybamba', 'provincia_codigo' => '1004'],
+            ['codigo_ubigeo' => '100402', 'nombre' => 'Canchabamba', 'provincia_codigo' => '1004'],
+            ['codigo_ubigeo' => '100403', 'nombre' => 'Cochabamba', 'provincia_codigo' => '1004'],
+            ['codigo_ubigeo' => '100404', 'nombre' => 'Pinra', 'provincia_codigo' => '1004'],
+
+            // HUÁNUCO - Huamalíes (1005)
+            ['codigo_ubigeo' => '100501', 'nombre' => 'Llata', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100502', 'nombre' => 'Arancay', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100503', 'nombre' => 'Chavín de Pariarca', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100504', 'nombre' => 'Jacas Grande', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100505', 'nombre' => 'Jircan', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100506', 'nombre' => 'Miraflores', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100507', 'nombre' => 'Monzón', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100508', 'nombre' => 'Punchao', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100509', 'nombre' => 'Puños', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100510', 'nombre' => 'Singa', 'provincia_codigo' => '1005'],
+            ['codigo_ubigeo' => '100511', 'nombre' => 'Tantamayo', 'provincia_codigo' => '1005'],
+
+            // HUÁNUCO - Leoncio Prado (1006)
+            ['codigo_ubigeo' => '100601', 'nombre' => 'Rupa-Rupa', 'provincia_codigo' => '1006'],
+            ['codigo_ubigeo' => '100602', 'nombre' => 'Daniel Alomía Robles', 'provincia_codigo' => '1006'],
+            ['codigo_ubigeo' => '100603', 'nombre' => 'Hermílio Valdizán', 'provincia_codigo' => '1006'],
+            ['codigo_ubigeo' => '100604', 'nombre' => 'José Crespo y Castillo', 'provincia_codigo' => '1006'],
+            ['codigo_ubigeo' => '100605', 'nombre' => 'Luyando', 'provincia_codigo' => '1006'],
+            ['codigo_ubigeo' => '100606', 'nombre' => 'Mariano Damaso Beraun', 'provincia_codigo' => '1006'],
+
+            // HUÁNUCO - Marañón (1007)
+            ['codigo_ubigeo' => '100701', 'nombre' => 'Huacrachuco', 'provincia_codigo' => '1007'],
+            ['codigo_ubigeo' => '100702', 'nombre' => 'Cholon', 'provincia_codigo' => '1007'],
+            ['codigo_ubigeo' => '100703', 'nombre' => 'San Buenaventura', 'provincia_codigo' => '1007'],
+
+            // HUÁNUCO - Pachitea (1008)
+            ['codigo_ubigeo' => '100801', 'nombre' => 'Panao', 'provincia_codigo' => '1008'],
+            ['codigo_ubigeo' => '100802', 'nombre' => 'Chaglla', 'provincia_codigo' => '1008'],
+            ['codigo_ubigeo' => '100803', 'nombre' => 'Molino', 'provincia_codigo' => '1008'],
+            ['codigo_ubigeo' => '100804', 'nombre' => 'Umari', 'provincia_codigo' => '1008'],
+
+            // HUÁNUCO - Puerto Inca (1009)
+            ['codigo_ubigeo' => '100901', 'nombre' => 'Puerto Inca', 'provincia_codigo' => '1009'],
+            ['codigo_ubigeo' => '100902', 'nombre' => 'Codo del Pozuzo', 'provincia_codigo' => '1009'],
+            ['codigo_ubigeo' => '100903', 'nombre' => 'Honoria', 'provincia_codigo' => '1009'],
+            ['codigo_ubigeo' => '100904', 'nombre' => 'Tournavista', 'provincia_codigo' => '1009'],
+            ['codigo_ubigeo' => '100905', 'nombre' => 'Yuyapichis', 'provincia_codigo' => '1009'],
+
+            // HUÁNUCO - Lauricocha (1010)
+            ['codigo_ubigeo' => '101001', 'nombre' => 'Jesús', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101002', 'nombre' => 'Baños', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101003', 'nombre' => 'Jivia', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101004', 'nombre' => 'Queropalca', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101005', 'nombre' => 'Rondos', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101006', 'nombre' => 'San Francisco de Asís', 'provincia_codigo' => '1010'],
+            ['codigo_ubigeo' => '101007', 'nombre' => 'San Miguel de Cauri', 'provincia_codigo' => '1010'],
+
+            // HUÁNUCO - Yarowilca (1011)
+            ['codigo_ubigeo' => '101101', 'nombre' => 'Chavinillo', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101102', 'nombre' => 'Cahuac', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101103', 'nombre' => 'Chacabamba', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101104', 'nombre' => 'Aparicio Pomares', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101105', 'nombre' => 'Jacas Chico', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101106', 'nombre' => 'Obas', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101107', 'nombre' => 'Pampamarca', 'provincia_codigo' => '1011'],
+            ['codigo_ubigeo' => '101108', 'nombre' => 'Choras', 'provincia_codigo' => '1011'],
+
         ];
         foreach ($distritos as $distrito) {
             Distrito::create($distrito);
