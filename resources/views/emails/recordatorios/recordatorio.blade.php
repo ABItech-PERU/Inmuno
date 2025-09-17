@@ -12,7 +12,7 @@ $r = $recordatorio;
 <body>
     <h2>{{ $stage === 'created' ? 'Recordatorio creado' : 'Recordatorio' }}</h2>
 
-    <p>Hola {{ optional($notifiable)->nombres ?? 'usuario' }},</p>
+    <p>Hola {{ optional($notifiable)->name ?? 'usuario' }},</p>
 
     <p>{{ $r->mensaje ?? 'Tienes un recordatorio programado.' }}</p>
 
