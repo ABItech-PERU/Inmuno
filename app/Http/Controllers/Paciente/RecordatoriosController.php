@@ -276,7 +276,7 @@ class RecordatoriosController extends Controller
             'metodo_envio' => 'sistema'
         ]);
 
-        Log::info('Creando recordatorio ID: ' . $recordatorio->id . ' para usuario: ' . $user->id);
+        Log::info("Nuevo recordatorio #{$recordatorio->id} creado para usuario #{$user->id}");
 
         // Enviar confirmación inmediata
         $this->enviarConfirmacion($recordatorio, $user);
@@ -540,26 +540,26 @@ class RecordatoriosController extends Controller
 
         if ($enviarSincrono) {
             try {
-                Log::info('Enviando confirmación síncrona para recordatorio ID: ' . $recordatorio->id);
+                Log::info("Enviando confirmacion sincrona para recordatorio #{$recordatorio->id}");
                 Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
-                Log::info('Confirmación síncrona enviada exitosamente para recordatorio ID: ' . $recordatorio->id);
+                Log::info("Confirmacion sincrona enviada para recordatorio #{$recordatorio->id}");
             } catch (\Throwable $e) {
-                Log::error('Error enviando confirmación síncrona para recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+                Log::error("Error en confirmacion sincrona #{$recordatorio->id}: {$e->getMessage()}");
             }
         } else {
             try {
-                Log::info('Intentando encolar job de confirmación para recordatorio ID: ' . $recordatorio->id);
+                Log::info("Encolando confirmacion asincrona para recordatorio #{$recordatorio->id}");
                 EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
-                Log::info('Job encolado exitosamente para recordatorio ID: ' . $recordatorio->id);
+                Log::info("Job de confirmacion encolado para recordatorio #{$recordatorio->id}");
             } catch (\Throwable $e) {
-                Log::error('No se pudo encolar la confirmación de recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+                Log::error("Error encolando confirmacion #{$recordatorio->id}: {$e->getMessage()}");
                 // Fallback síncrono
                 try {
-                    Log::info('Intentando envío síncrono de confirmación para recordatorio ID: ' . $recordatorio->id);
+                    Log::info("Fallback: Enviando confirmacion sincrona para recordatorio #{$recordatorio->id}");
                     Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
-                    Log::info('Envío síncrono exitoso para recordatorio ID: ' . $recordatorio->id);
+                    Log::info("Confirmacion fallback enviada para recordatorio #{$recordatorio->id}");
                 } catch (\Throwable $ex) {
-                    Log::error('No se pudo enviar confirmación de recordatorio en fallback para ID ' . $recordatorio->id . ': ' . $ex->getMessage());
+                    Log::error("Error en fallback de confirmacion #{$recordatorio->id}: {$ex->getMessage()}");
                 }
             }
         }
@@ -583,13 +583,13 @@ class RecordatoriosController extends Controller
                     EnviarRecordatorioJob::dispatch($recordatorio->id, 'reminder')
                         ->delay($fechaCompleta)
                         ->onQueue('emails');
-                    Log::info('Job programado para recordatorio ' . $recordatorio->id . ' a las ' . $fechaCompleta->format('Y-m-d H:i:s T'));
+                    Log::info("Job programado para recordatorio #{$recordatorio->id} a las {$fechaCompleta->format('Y-m-d H:i:s T')}");
                 } else {
-                    Log::info('Queue es sync, no se programa job delayed para recordatorio ' . $recordatorio->id . '. Usará el scheduler para envío en el día.');
+                    Log::info("Queue es sync, no se programa job delayed para recordatorio #{$recordatorio->id}");
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('Error programando job delayed para recordatorio ' . $recordatorio->id . ': ' . $e->getMessage());
+            Log::error("Error programando job delayed para recordatorio #{$recordatorio->id}: {$e->getMessage()}");
         }
     }
 }
