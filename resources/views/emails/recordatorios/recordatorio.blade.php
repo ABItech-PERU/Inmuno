@@ -137,7 +137,7 @@ $isCreated = $stage === 'created';
             </div>
 
             <div class="details">
-                <h3><span class="emoji">📋</span> Detalles del Recordatorio</h3>
+                <h3><span class="emoji">📋</span> Detalles del recordatorio</h3>
                 <ul>
                     <li><strong>Título:</strong> {{ $r->titulo }}</li>
                     <li><strong>Tipo:</strong> {{ $r->tipo === 'vacuna_proxima' ? 'Vacuna Próxima' : ($r->tipo === 'cita_programada' ? 'Cita Programada' : ($r->tipo === 'refuerzo_pendiente' ? 'Refuerzo Pendiente' : 'Recordatorio Personal')) }}</li>
@@ -152,9 +152,9 @@ $isCreated = $stage === 'created';
                 </ul>
             </div>
 
-            <p style="text-align: center;">
+            <p style="text-align: center; color: #ffffff; font-weight: 600;">
                 <a href="{{ $url }}" class="cta-button">
-                    {{ $isCreated ? 'Ver Mi Recordatorio' : 'Marcar como Completado' }} <span class="emoji">👆</span>
+                    {{ $isCreated ? 'VER RECORDATORIO' : 'MARCAR COMO COMPLETADO' }} <span class="emoji">👆</span>
                 </a>
             </p>
 

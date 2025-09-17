@@ -28,7 +28,7 @@ class EnviarRecordatorioJob implements ShouldQueue
     {
         $recordatorio = Recordatorio::with(['usuario','dependiente'])->find($this->recordatorioId);
         if (!$recordatorio) {
-            Log::warning('Recordatorio no encontrado con ID: ' . $this->recordatorioId);
+            Log::warning("Recordatorio #{$this->recordatorioId} no encontrado en la base de datos.");
             return;
         }
 
@@ -36,35 +36,35 @@ class EnviarRecordatorioJob implements ShouldQueue
         if ($this->stage !== 'created') {
             // Only send if still pending or programado for other stages
             if (!in_array($recordatorio->estado, ['programado', 'es_hoy'])) {
-                Log::info('Recordatorio ID ' . $this->recordatorioId . ' no está en estado válido para envío: ' . $recordatorio->estado);
+                Log::info("Recordatorio #{$this->recordatorioId} saltado: estado '{$recordatorio->estado}' no valido para envio.");
                 return;
             }
 
             // No enviar si ya fue enviado
             if ($recordatorio->enviado_en) {
-                Log::info('Recordatorio ID ' . $this->recordatorioId . ' ya enviado, saltando');
+                Log::info("Recordatorio #{$this->recordatorioId} ya enviado previamente, omitiendo.");
                 return;
             }
         }
 
         try {
             if (!$recordatorio->usuario) {
-                Log::error('Usuario no encontrado para recordatorio ID: ' . $this->recordatorioId);
+                Log::error("Usuario no encontrado para recordatorio #{$this->recordatorioId}.");
                 return;
             }
 
-            Log::info('Enviando notificación para recordatorio ID: ' . $this->recordatorioId . ' stage: ' . $this->stage);
+            Log::info("Enviando notificacion de recordatorio #{$this->recordatorioId} (tipo: {$this->stage})");
             $recordatorio->usuario->notify(new RecordatorioNotification($recordatorio, $this->stage));
 
             // Solo marcar como enviado si no es el stage 'created'
-            if ($this->stage !== 'created') {
+            if ($this->stage !== 'created' && ($this->stage === 'reminder' || !$recordatorio->hora_recordatorio)) {
                 $recordatorio->marcarComoEnviado();
             }
 
-            Log::info('Notificación enviada exitosamente para recordatorio ID: ' . $this->recordatorioId);
+            Log::info("Notificacion enviada exitosamente para recordatorio #{$this->recordatorioId}");
 
         } catch (\Exception $e) {
-            Log::error('Error enviando recordatorio id ' . $this->recordatorioId . ': ' . $e->getMessage());
+            Log::error("Error enviando recordatorio #{$this->recordatorioId}: {$e->getMessage()}");
             Log::error('Stack trace: ' . $e->getTraceAsString());
             // Let the job fail and be retried according to queue config
             throw $e;
