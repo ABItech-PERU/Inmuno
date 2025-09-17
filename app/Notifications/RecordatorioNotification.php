@@ -36,6 +36,8 @@ class RecordatorioNotification extends Notification
             $subject = ($this->stage == 0) ? "Recordatorio (hoy): {$r->titulo}" : "Recordatorio ({$this->stage} días): {$r->titulo}";
         } elseif ($this->stage === 'created') {
             $subject = "Recordatorio creado: {$r->titulo}";
+        } elseif ($this->stage === 'reminder') {
+            $subject = "Recordatorio programado: {$r->titulo}";
         }
 
         $url = URL::to('/recordatorios/' . $r->id);
