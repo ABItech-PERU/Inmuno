@@ -311,6 +311,7 @@ class RecordatoriosController extends Controller
             }
         }
 
+
         // Los envíos futuros los gestiona el scheduler central (comando recordatorios:enviar).
 
         // ----
