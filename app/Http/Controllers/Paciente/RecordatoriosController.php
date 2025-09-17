@@ -32,16 +32,16 @@ class RecordatoriosController extends Controller
 
         // Aplicar filtro de búsqueda
         if ($filtroBusqueda) {
-            $query->where(function($q) use ($filtroBusqueda) {
+            $query->where(function ($q) use ($filtroBusqueda) {
                 $q->where('titulo', 'like', '%' . $filtroBusqueda . '%')
-                  ->orWhere('mensaje', 'like', '%' . $filtroBusqueda . '%')
-                  ->orWhereHas('vacuna', function($vq) use ($filtroBusqueda) {
-                      $vq->where('nombre', 'like', '%' . $filtroBusqueda . '%');
-                  })
-                  ->orWhereHas('dependiente', function($dq) use ($filtroBusqueda) {
-                      $dq->where('nombres', 'like', '%' . $filtroBusqueda . '%')
-                        ->orWhere('apellidos', 'like', '%' . $filtroBusqueda . '%');
-                  });
+                    ->orWhere('mensaje', 'like', '%' . $filtroBusqueda . '%')
+                    ->orWhereHas('vacuna', function ($vq) use ($filtroBusqueda) {
+                        $vq->where('nombre', 'like', '%' . $filtroBusqueda . '%');
+                    })
+                    ->orWhereHas('dependiente', function ($dq) use ($filtroBusqueda) {
+                        $dq->where('nombres', 'like', '%' . $filtroBusqueda . '%')
+                            ->orWhere('apellidos', 'like', '%' . $filtroBusqueda . '%');
+                    });
             });
         }
 
@@ -232,7 +232,7 @@ class RecordatoriosController extends Controller
         }
 
         return Inertia::render('Paciente/Recordatorios/Show', [
-            'recordatorio' => (function($r) {
+            'recordatorio' => (function ($r) {
                 if ($r->fecha_recordatorio) $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
                 if ($r->hora_recordatorio && $r->hora_recordatorio instanceof \DateTime) $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
                 return $r;
@@ -326,14 +326,8 @@ class RecordatoriosController extends Controller
                 $fechaCompleta->setTimeFromTimeString($recordatorio->hora_recordatorio);
 
                 if ($fechaCompleta->isFuture()) {
-                    if ($enviarSincrono) {
-                        // En entornos locales/queue sync no programamos jobs delayed porque
-                        // la conexión sync no respeta delays; informar en logs.
-                        Log::info("No se programó job delayed para recordatorio {$recordatorio->id} porque la cola está en modo sync/local. En producción el job se programará correctamente.");
-                    } else {
-                        EnviarRecordatorioJob::dispatch($recordatorio->id)->delay($fechaCompleta)->onQueue('emails');
-                        Log::info('Job programado para recordatorio ' . $recordatorio->id . ' a las ' . $fechaCompleta);
-                    }
+                    EnviarRecordatorioJob::dispatch($recordatorio->id)->delay($fechaCompleta)->onQueue('emails');
+                    Log::info('Job programado para recordatorio ' . $recordatorio->id . ' a las ' . $fechaCompleta);
                 }
             } catch (\Throwable $e) {
                 Log::error('Error programando job delayed para recordatorio ' . $recordatorio->id . ': ' . $e->getMessage());
@@ -369,7 +363,7 @@ class RecordatoriosController extends Controller
         $vacunas = Vacuna::orderBy('nombre')->get();
 
         return Inertia::render('Paciente/Recordatorios/Edit', [
-            'recordatorio' => (function($r) {
+            'recordatorio' => (function ($r) {
                 if ($r->fecha_recordatorio) $r->fecha_recordatorio = $r->fecha_recordatorio->format('Y-m-d');
                 if ($r->hora_recordatorio && $r->hora_recordatorio instanceof \DateTime) $r->hora_recordatorio = $r->hora_recordatorio->format('H:i');
                 return $r;
@@ -582,8 +576,8 @@ class RecordatoriosController extends Controller
 
         // Es urgente si es hoy, mañana o ya pasó
         return $fechaRecordatorio->isToday() ||
-               $fechaRecordatorio->isTomorrow() ||
-               $fechaRecordatorio->isPast() ||
-               $fechaRecordatorio->diffInDays($hoy) <= 1;
+            $fechaRecordatorio->isTomorrow() ||
+            $fechaRecordatorio->isPast() ||
+            $fechaRecordatorio->diffInDays($hoy) <= 1;
     }
 }
