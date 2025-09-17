@@ -88,9 +88,9 @@ class Recordatorio extends Model
     public function marcarComoEnviado()
     {
         $this->update([
-            'estado' => 'enviado',
             'enviado_en' => now()
         ]);
+        // No cambiar el estado, solo marcar la fecha de envío
     }
 
     public function marcarComoLeido()

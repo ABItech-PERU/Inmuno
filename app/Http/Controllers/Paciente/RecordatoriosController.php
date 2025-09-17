@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class RecordatoriosController extends Controller
@@ -269,24 +270,47 @@ class RecordatoriosController extends Controller
             'titulo' => $validated['titulo'],
             'mensaje' => $validated['mensaje'],
             'fecha_recordatorio' => $validated['fecha_recordatorio'],
-            'hora_recordatorio' => $validated['hora_recordatorio'],
+            'hora_recordatorio' => $validated['hora_recordatorio'] ?? null,
             'estado' => 'programado',
             'metodo_envio' => 'sistema'
         ]);
 
-        // Enviar confirmación de creación (en background si hay cola configurada)
-        try {
-            // Disparar job directamente si la cola está configurada
-            \App\Jobs\EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
-        } catch (\Throwable $e) {
-            // Si falla (no hay cola), enviar notificación sincrónica usando facade
+        // Envío de confirmación: intentar Job primero, fallback síncrono
+        Log::info('Creando recordatorio ID: ' . $recordatorio->id . ' para usuario: ' . $user->id);
+
+        // Detectar si estamos en desarrollo (no hay worker corriendo)
+        $enviarSincrono = config('app.env') === 'local' || !config('queue.default') === 'database';
+
+        if ($enviarSincrono) {
+            // Envío síncrono directo para desarrollo
             try {
-                \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+                Log::info('Enviando confirmación síncrona para recordatorio ID: ' . $recordatorio->id);
+                Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+                Log::info('Confirmación síncrona enviada exitosamente para recordatorio ID: ' . $recordatorio->id);
             } catch (\Throwable $e) {
-                // registrar y continuar
-                \Illuminate\Support\Facades\Log::error('No se pudo enviar confirmación de recordatorio: ' . $e->getMessage());
+                Log::error('Error enviando confirmación síncrona para recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+            }
+        } else {
+            // Envío asíncrono para producción
+            try {
+                Log::info('Intentando encolar job de confirmación para recordatorio ID: ' . $recordatorio->id);
+                \App\Jobs\EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
+                Log::info('Job encolado exitosamente para recordatorio ID: ' . $recordatorio->id);
+            } catch (\Throwable $e) {
+                Log::error('No se pudo encolar la confirmación de recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+
+                // Fallback síncrono si falla el Job
+                try {
+                    Log::info('Intentando envío síncrono de confirmación para recordatorio ID: ' . $recordatorio->id);
+                    Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+                    Log::info('Envío síncrono exitoso para recordatorio ID: ' . $recordatorio->id);
+                } catch (\Throwable $ex) {
+                    Log::error('No se pudo enviar confirmación de recordatorio en fallback para ID ' . $recordatorio->id . ': ' . $ex->getMessage());
+                }
             }
         }
+
+        // Los envíos futuros los gestiona el scheduler central (comando recordatorios:enviar).
 
         return redirect()->route('paciente.recordatorios.index')
             ->with('success', 'Recordatorio creado exitosamente.');
