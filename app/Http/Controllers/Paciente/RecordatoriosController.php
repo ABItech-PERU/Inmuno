@@ -276,63 +276,13 @@ class RecordatoriosController extends Controller
             'metodo_envio' => 'sistema'
         ]);
 
-        // Envío de confirmación: intentar Job primero, fallback síncrono
         Log::info('Creando recordatorio ID: ' . $recordatorio->id . ' para usuario: ' . $user->id);
 
-        // Detectar si estamos en desarrollo (no hay worker corriendo) o la conexión de queue es sync
-        $enviarSincrono = config('app.env') === 'local' || config('queue.default') === 'sync';
+        // Enviar confirmación inmediata
+        $this->enviarConfirmacion($recordatorio, $user);
 
-
-        if ($enviarSincrono) {
-            // Envío síncrono directo para desarrollo
-            try {
-                Log::info('Enviando confirmación síncrona para recordatorio ID: ' . $recordatorio->id);
-                Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
-                Log::info('Confirmación síncrona enviada exitosamente para recordatorio ID: ' . $recordatorio->id);
-            } catch (\Throwable $e) {
-                Log::error('Error enviando confirmación síncrona para recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
-            }
-        } else {
-            // Envío asíncrono para producción
-            try {
-                Log::info('Intentando encolar job de confirmación para recordatorio ID: ' . $recordatorio->id);
-                EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
-                Log::info('Job encolado exitosamente para recordatorio ID: ' . $recordatorio->id);
-            } catch (\Throwable $e) {
-                Log::error('No se pudo encolar la confirmación de recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
-
-                // Fallback síncrono si falla el Job
-                try {
-                    Log::info('Intentando envío síncrono de confirmación para recordatorio ID: ' . $recordatorio->id);
-                    Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
-                    Log::info('Envío síncrono exitoso para recordatorio ID: ' . $recordatorio->id);
-                } catch (\Throwable $ex) {
-                    Log::error('No se pudo enviar confirmación de recordatorio en fallback para ID ' . $recordatorio->id . ': ' . $ex->getMessage());
-                }
-            }
-        }
-
-
-        // Los envíos futuros los gestiona el scheduler central (comando recordatorios:enviar).
-
-        // ----
-        // Si el recordatorio incluye una hora exacta (hora_recordatorio) y la fecha+hora objetivo
-        // es futura, programamos un job delayed para ejecutarse en ese instante. Esto garantiza
-        // envíos con resolución de minutos sin depender exclusivamente del scheduler
-        // que en producción puede ejecutarse cada 15 minutos.
-        if ($recordatorio->hora_recordatorio) {
-            try {
-                $fechaCompleta = Carbon::parse($recordatorio->fecha_recordatorio);
-                $fechaCompleta->setTimeFromTimeString($recordatorio->hora_recordatorio);
-
-                if ($fechaCompleta->isFuture()) {
-                    EnviarRecordatorioJob::dispatch($recordatorio->id)->delay($fechaCompleta)->onQueue('emails');
-                    Log::info('Job programado para recordatorio ' . $recordatorio->id . ' a las ' . $fechaCompleta);
-                }
-            } catch (\Throwable $e) {
-                Log::error('Error programando job delayed para recordatorio ' . $recordatorio->id . ': ' . $e->getMessage());
-            }
-        }
+        // Programar envío en hora exacta si aplica
+        $this->programarEnvioExacto($recordatorio);
 
         return redirect()->route('paciente.recordatorios.index')
             ->with('success', 'Recordatorio creado exitosamente.');
@@ -579,5 +529,67 @@ class RecordatoriosController extends Controller
             $fechaRecordatorio->isTomorrow() ||
             $fechaRecordatorio->isPast() ||
             $fechaRecordatorio->diffInDays($hoy) <= 1;
+    }
+
+    /**
+     * Envía la confirmación de creación del recordatorio
+     */
+    private function enviarConfirmacion(Recordatorio $recordatorio, User $user)
+    {
+        $enviarSincrono = config('app.env') === 'local' || config('queue.default') === 'sync';
+
+        if ($enviarSincrono) {
+            try {
+                Log::info('Enviando confirmación síncrona para recordatorio ID: ' . $recordatorio->id);
+                Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+                Log::info('Confirmación síncrona enviada exitosamente para recordatorio ID: ' . $recordatorio->id);
+            } catch (\Throwable $e) {
+                Log::error('Error enviando confirmación síncrona para recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+            }
+        } else {
+            try {
+                Log::info('Intentando encolar job de confirmación para recordatorio ID: ' . $recordatorio->id);
+                EnviarRecordatorioJob::dispatch($recordatorio->id, 'created')->onQueue('emails');
+                Log::info('Job encolado exitosamente para recordatorio ID: ' . $recordatorio->id);
+            } catch (\Throwable $e) {
+                Log::error('No se pudo encolar la confirmación de recordatorio ID ' . $recordatorio->id . ': ' . $e->getMessage());
+                // Fallback síncrono
+                try {
+                    Log::info('Intentando envío síncrono de confirmación para recordatorio ID: ' . $recordatorio->id);
+                    Notification::send($user, new \App\Notifications\RecordatorioNotification($recordatorio, 'created'));
+                    Log::info('Envío síncrono exitoso para recordatorio ID: ' . $recordatorio->id);
+                } catch (\Throwable $ex) {
+                    Log::error('No se pudo enviar confirmación de recordatorio en fallback para ID ' . $recordatorio->id . ': ' . $ex->getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Programa el envío en hora exacta si aplica
+     */
+    private function programarEnvioExacto(Recordatorio $recordatorio)
+    {
+        if (!$recordatorio->hora_recordatorio) {
+            return;
+        }
+
+        try {
+            $fechaCompleta = Carbon::parse($recordatorio->fecha_recordatorio, config('app.timezone'))
+                ->setTimeFromTimeString($recordatorio->hora_recordatorio);
+
+            if ($fechaCompleta->isFuture()) {
+                if (config('queue.default') !== 'sync') {
+                    EnviarRecordatorioJob::dispatch($recordatorio->id, 'reminder')
+                        ->delay($fechaCompleta)
+                        ->onQueue('emails');
+                    Log::info('Job programado para recordatorio ' . $recordatorio->id . ' a las ' . $fechaCompleta->format('Y-m-d H:i:s T'));
+                } else {
+                    Log::info('Queue es sync, no se programa job delayed para recordatorio ' . $recordatorio->id . '. Usará el scheduler para envío en el día.');
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error programando job delayed para recordatorio ' . $recordatorio->id . ': ' . $e->getMessage());
+        }
     }
 }

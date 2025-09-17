@@ -39,6 +39,12 @@ class EnviarRecordatorioJob implements ShouldQueue
                 Log::info('Recordatorio ID ' . $this->recordatorioId . ' no está en estado válido para envío: ' . $recordatorio->estado);
                 return;
             }
+
+            // No enviar si ya fue enviado
+            if ($recordatorio->enviado_en) {
+                Log::info('Recordatorio ID ' . $this->recordatorioId . ' ya enviado, saltando');
+                return;
+            }
         }
 
         try {
