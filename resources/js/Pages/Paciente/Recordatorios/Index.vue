@@ -1,6 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { computed, ref } from 'vue';
+import InputError from '@/Components/InputError.vue';
 import { usePage, Link, router } from '@inertiajs/vue3';
 import {
     BellIcon,
@@ -18,6 +19,7 @@ import {
     FunnelIcon
 } from '@heroicons/vue/24/outline';
 import { parseDateLocal, formatDateShort, formatDateLong } from '@/Utils/date';
+import { validateDateTime } from '@/Utils/validateDateTime.js';
 
 const page = usePage();
 const props = defineProps({
@@ -50,6 +52,8 @@ const formularioNuevo = ref({
     fecha_recordatorio: '',
     hora_recordatorio: ''
 });
+// Errores locales del formulario (mensajes inline)
+const errorHora = ref('');
 
 // Filtros
 const filtros = ref({
@@ -63,8 +67,8 @@ const user = computed(() => page.props.auth.user);
 
 const hasFilters = computed(() => {
     return filtros.value.busqueda ||
-           filtros.value.tipo ||
-           (filtros.value.estado && filtros.value.estado !== 'todos');
+        filtros.value.tipo ||
+        (filtros.value.estado && filtros.value.estado !== 'todos');
 });
 
 const abrirModalNuevo = () => {
@@ -80,11 +84,38 @@ const abrirModalNuevo = () => {
     mostrarModalNuevo.value = true;
 };
 
+// Fecha mínima local en formato YYYY-MM-DD para el input type=date
+const todayLocal = computed(() => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset(); // minutos
+    const local = new Date(now.getTime() - offset * 60 * 1000);
+    return local.toISOString().split('T')[0];
+});
+
 const cerrarModales = () => {
     mostrarModalNuevo.value = false;
     mostrarModalEditar.value = false;
     mostrarModalDependientes.value = false;
     recordatorioSeleccionado.value = null;
+    errorHora.value = '';
+};
+// Helper pequeño para formatear horas/minutos
+const pad = (n) => String(n).padStart(2, '0');
+
+// Valida la fecha/hora sin forzar asignación de hora (hour sigue siendo opcional)
+// Se usa en los handlers @change/@input para mostrar errores inline, pero
+// no debe rellenar automáticamente el campo hora cuando el usuario solo selecciona la fecha.
+const validarFechaHora = () => {
+    const fechaStr = formularioNuevo.value.fecha_recordatorio;
+    const horaStr = formularioNuevo.value.hora_recordatorio;
+    const res = validateDateTime(fechaStr, horaStr);
+    if (!res.valid) {
+        errorHora.value = res.error || 'Hora inválida';
+        return false;
+    }
+    // No aplicar res.assignedTime aquí: mantener la hora opcional hasta el envío.
+    errorHora.value = '';
+    return true;
 };
 
 const crearRecordatorio = () => {
@@ -97,6 +128,12 @@ const crearRecordatorio = () => {
         return;
     }
 
+    // Validar fecha/hora: mostrar errores y, en caso de que la util sugiera una hora
+    // por defecto (fecha = hoy y sin hora), asignarla justo antes de enviar.
+    if (!validarFechaHora()) return;
+    // No asignar ni enviar ninguna hora por defecto si el usuario no puso hora.
+    // Solo validamos y mostramos errores; si el campo hora queda vacío, no se incluirá en los datos enviados.
+
     // Preparar datos para enviar
     const datos = {
         ...formularioNuevo.value,
@@ -107,6 +144,11 @@ const crearRecordatorio = () => {
         // Convertir string vacío a null para mensaje
         mensaje: formularioNuevo.value.mensaje === '' ? null : formularioNuevo.value.mensaje
     };
+
+    // Si el usuario no especificó hora, no enviar ninguna clave 'hora_recordatorio'
+    if (datos.hora_recordatorio === '' || datos.hora_recordatorio === null || typeof datos.hora_recordatorio === 'undefined') {
+        delete datos.hora_recordatorio;
+    }
 
     console.log('Enviando datos:', datos); // Para debug
 
@@ -123,6 +165,7 @@ const crearRecordatorio = () => {
                 hora_recordatorio: ''
             };
             cerrarModales();
+            errorHora.value = '';
         },
         onError: (errors) => {
             console.error('Error al crear recordatorio:', errors);
@@ -135,6 +178,22 @@ const crearRecordatorio = () => {
         }
     });
 };
+
+// Computed para el atributo min del input type=time
+const minHoraParaFecha = computed(() => {
+    const fecha = formularioNuevo.value.fecha_recordatorio;
+    if (!fecha) return null;
+    const hoy = new Date();
+    const d = parseDateLocal(fecha);
+    if (d && d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth() && d.getDate() === hoy.getDate()) {
+        // si la fecha es hoy, el mínimo permitido al seleccionar hora es ahora + 15 minutos
+        const min = new Date(hoy.getTime() + 1 * 60 * 1000);
+        const hh = String(min.getHours()).padStart(2, '0');
+        const mm = String(min.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+    return null;
+});
 
 const marcarComoLeido = (recordatorio) => {
     router.patch(route('paciente.recordatorios.marcar-leido', recordatorio.id), {}, {
@@ -178,7 +237,7 @@ const formatearFechaCompleta = (fecha, hora) => formatDateLong(fecha, hora);
 const esVencido = (fecha) => {
     const dt = parseDateLocal(fecha);
     if (!dt) return false;
-    const inicioHoy = new Date(); inicioHoy.setHours(0,0,0,0);
+    const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
     return dt < inicioHoy;
 };
 
@@ -290,18 +349,15 @@ const getClaseUrgencia = (fecha) => {
                         </div>
 
                         <!-- Botones de acción -->
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                            <button
-                                @click="mostrarModalDependientes = true"
-                                class="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-cyan-300 text-cyan-700 bg-cyan-50 hover:bg-cyan-100 rounded-md text-sm font-medium transition-colors"
-                            >
+                        <div
+                            class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                            <button @click="mostrarModalDependientes = true"
+                                class="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-cyan-300 text-cyan-700 bg-cyan-50 hover:bg-cyan-100 rounded-md text-sm font-medium transition-colors">
                                 <UserGroupIcon class="h-4 w-4 mr-2" />
                                 <span class="hidden xs:inline mr-1">Gestionar </span>dependientes
                             </button>
-                            <button
-                                @click="abrirModalNuevo"
-                                class="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors"
-                            >
+                            <button @click="abrirModalNuevo"
+                                class="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors">
                                 <PlusIcon class="h-4 w-4 mr-2" />
                                 <span class="hidden xs:inline mr-1">Nuevo </span>Recordatorio
                             </button>
@@ -325,7 +381,8 @@ const getClaseUrgencia = (fecha) => {
                                     <h3 class="text-sm font-medium text-gray-900">Estado de hoy</h3>
                                     <p class="text-xs text-gray-600">
                                         <span v-if="estadisticas.para_hoy > 0" class="text-orange-600 font-medium">
-                                            {{ estadisticas.para_hoy }} pendiente{{ estadisticas.para_hoy > 1 ? 's' : '' }}
+                                            {{ estadisticas.para_hoy }} pendiente{{ estadisticas.para_hoy > 1 ? 's' : ''
+                                            }}
                                         </span>
                                         <span v-else class="text-green-600">✓ Al día</span>
                                     </p>
@@ -344,7 +401,8 @@ const getClaseUrgencia = (fecha) => {
                                 </div>
                                 <!-- Hechos -->
                                 <div class="text-center">
-                                    <div class="text-lg font-bold text-green-600">{{ estadisticas.completados || 0 }}</div>
+                                    <div class="text-lg font-bold text-green-600">{{ estadisticas.completados || 0 }}
+                                    </div>
                                     <div class="text-xs text-gray-500">Hechos</div>
                                 </div>
                             </div>
@@ -353,7 +411,8 @@ const getClaseUrgencia = (fecha) => {
                         <!-- Alertas importantes -->
                         <div v-if="estadisticas.pendientes_atencion > 0" class="mt-3 pt-3 border-t border-gray-100">
                             <div class="flex items-center justify-center">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                     <ExclamationTriangleIcon class="w-3 h-3 mr-1" />
                                     {{ estadisticas.pendientes_atencion }} requieren tu atención
                                 </span>
@@ -420,16 +479,19 @@ const getClaseUrgencia = (fecha) => {
                                 </div>
                                 <div class="ml-2">
                                     <p class="text-xs font-medium text-gray-500">Requieren Atención</p>
-                                    <p class="text-lg font-bold text-red-600">{{ estadisticas.pendientes_atencion || 0 }}</p>
+                                    <p class="text-lg font-bold text-red-600">{{ estadisticas.pendientes_atencion || 0
+                                        }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Resumen tablet -->
-                    <div v-if="estadisticas.pendientes_atencion > 0" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+                    <div v-if="estadisticas.pendientes_atencion > 0"
+                        class="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
                         <div class="flex items-center justify-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                                 <ExclamationTriangleIcon class="w-4 h-4 mr-1" />
                                 {{ estadisticas.pendientes_atencion }} recordatorios requieren tu atención
                             </span>
@@ -495,7 +557,8 @@ const getClaseUrgencia = (fecha) => {
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-xs font-medium text-gray-500">Requieren Atención</p>
-                                    <p class="text-xl font-bold text-red-600">{{ estadisticas.pendientes_atencion || 0 }}</p>
+                                    <p class="text-xl font-bold text-red-600">{{ estadisticas.pendientes_atencion || 0
+                                        }}</p>
                                 </div>
                             </div>
                         </div>
@@ -520,22 +583,27 @@ const getClaseUrgencia = (fecha) => {
                                             ✓ Al día
                                         </span>
                                         •
-                                        <span class="text-blue-600">{{ estadisticas.esta_semana || 0 }} esta semana</span>
-                                        <span v-if="estadisticas.vencidos && estadisticas.vencidos > 0" class="text-red-600">
-                                            • {{ estadisticas.vencidos }} vencido{{ estadisticas.vencidos > 1 ? 's' : '' }}
+                                        <span class="text-blue-600">{{ estadisticas.esta_semana || 0 }} esta
+                                            semana</span>
+                                        <span v-if="estadisticas.vencidos && estadisticas.vencidos > 0"
+                                            class="text-red-600">
+                                            • {{ estadisticas.vencidos }} vencido{{ estadisticas.vencidos > 1 ? 's' : ''
+                                            }}
                                         </span>
                                     </p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <div v-if="estadisticas.pendientes_atencion > 0" class="mb-1">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         <ExclamationTriangleIcon class="w-3 h-3 mr-1" />
                                         {{ estadisticas.pendientes_atencion }} requieren atención
                                     </span>
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    {{ estadisticas.completados || 0 }} completados de {{ estadisticas.total_recordatorios || 0 }} total
+                                    {{ estadisticas.completados || 0 }} completados de {{
+                                    estadisticas.total_recordatorios || 0 }} total
                                 </div>
                             </div>
                         </div>
@@ -543,7 +611,8 @@ const getClaseUrgencia = (fecha) => {
                 </div>
 
                 <!-- Próximos Recordatorios -->
-                <div v-if="proximosRecordatorios && proximosRecordatorios.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 mb-2">
+                <div v-if="proximosRecordatorios && proximosRecordatorios.length > 0"
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 mb-2">
                     <div class="px-4 py-3 border-b border-gray-200">
                         <h3 class="text-base font-medium text-gray-900 flex items-center">
                             <CalendarDaysIcon class="w-4 h-4 mr-2 text-cyan-600" />
@@ -553,20 +622,22 @@ const getClaseUrgencia = (fecha) => {
                     <div class="p-3">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             <div v-for="recordatorio in proximosRecordatorios" :key="recordatorio.id"
-                                 class="bg-gray-50 rounded-lg p-3 border border-gray-100 hover:bg-gray-100 transition-colors">
+                                class="bg-gray-50 rounded-lg p-3 border border-gray-100 hover:bg-gray-100 transition-colors">
                                 <div class="flex items-start justify-between mb-1">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-5 w-5">
-                                            <div class="h-5 w-5 rounded-full flex items-center justify-center"
-                                                 :class="{
-                                                     'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
-                                                     'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
-                                                     'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
-                                                     'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
-                                                 }">
-                                                <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'" class="h-3 w-3" />
-                                                <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'" class="h-3 w-3" />
-                                                <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'" class="h-3 w-3" />
+                                            <div class="h-5 w-5 rounded-full flex items-center justify-center" :class="{
+                                                'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
+                                                'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
+                                                'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
+                                                'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
+                                            }">
+                                                <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'"
+                                                    class="h-3 w-3" />
+                                                <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'"
+                                                    class="h-3 w-3" />
+                                                <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'"
+                                                    class="h-3 w-3" />
                                                 <ExclamationTriangleIcon v-else class="h-3 w-3" />
                                             </div>
                                         </div>
@@ -579,14 +650,17 @@ const getClaseUrgencia = (fecha) => {
                                     </span>
                                 </div>
                                 <h4 class="text-sm font-medium text-gray-900 mb-1">{{ recordatorio.titulo }}</h4>
-                                <p class="text-xs text-gray-600 mb-2">{{ formatearFecha(recordatorio.fecha_recordatorio) }}</p>
-                                <div v-if="recordatorio.dependiente" class="flex items-center text-xs text-purple-600 mb-2">
+                                <p class="text-xs text-gray-600 mb-2">{{ formatearFecha(recordatorio.fecha_recordatorio)
+                                    }}</p>
+                                <div v-if="recordatorio.dependiente"
+                                    class="flex items-center text-xs text-purple-600 mb-2">
                                     <UserGroupIcon class="w-3 h-3 mr-1" />
-                                    Para: {{ recordatorio.dependiente.nombres }} {{ recordatorio.dependiente.apellidos }}
+                                    Para: {{ recordatorio.dependiente.nombres }} {{ recordatorio.dependiente.apellidos
+                                    }}
                                 </div>
                                 <div class="flex justify-end">
                                     <button @click="verRecordatorio(recordatorio)"
-                                            class="text-xs text-cyan-600 hover:text-cyan-800 font-medium">
+                                        class="text-xs text-cyan-600 hover:text-cyan-800 font-medium">
                                         Ver detalles →
                                     </button>
                                 </div>
@@ -609,13 +683,9 @@ const getClaseUrgencia = (fecha) => {
                                     Buscar
                                 </label>
                                 <div class="relative">
-                                    <input
-                                        v-model="filtros.busqueda"
-                                        @keyup.enter="aplicarFiltrosTabla"
-                                        type="text"
+                                    <input v-model="filtros.busqueda" @keyup.enter="aplicarFiltrosTabla" type="text"
                                         placeholder="Buscar recordatorios..."
-                                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                                    />
+                                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm" />
                                     <MagnifyingGlassIcon class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
@@ -625,11 +695,8 @@ const getClaseUrgencia = (fecha) => {
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Tipo
                                 </label>
-                                <select
-                                    v-model="filtros.tipo"
-                                    @change="aplicarFiltrosTabla"
-                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                                >
+                                <select v-model="filtros.tipo" @change="aplicarFiltrosTabla"
+                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm">
                                     <option value="">Todos los tipos</option>
                                     <option value="recordatorio_personal">Personal</option>
                                     <option value="vacuna_proxima">Vacuna próxima</option>
@@ -643,11 +710,8 @@ const getClaseUrgencia = (fecha) => {
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Estado
                                 </label>
-                                <select
-                                    v-model="filtros.estado"
-                                    @change="aplicarFiltrosTabla"
-                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                                >
+                                <select v-model="filtros.estado" @change="aplicarFiltrosTabla"
+                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm">
                                     <option value="todos">Todos</option>
                                     <option value="programado">📅 Programados</option>
                                     <option value="es_hoy">⏰ Para hoy</option>
@@ -659,19 +723,14 @@ const getClaseUrgencia = (fecha) => {
 
                             <!-- Botones -->
                             <div class="flex items-end space-x-2">
-                                <button
-                                    @click="aplicarFiltrosTabla"
-                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors"
-                                >
+                                <button @click="aplicarFiltrosTabla"
+                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors">
                                     <FunnelIcon class="h-4 w-4 mr-2" />
                                     Filtrar
                                 </button>
-                                <button
-                                    v-if="hasFilters"
-                                    @click="limpiarFiltros"
+                                <button v-if="hasFilters" @click="limpiarFiltros"
                                     class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
-                                    title="Limpiar filtros"
-                                >
+                                    title="Limpiar filtros">
                                     <XMarkIcon class="h-4 w-4" />
                                 </button>
                             </div>
@@ -683,10 +742,8 @@ const getClaseUrgencia = (fecha) => {
                         <!-- Botón toggle y título -->
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-sm font-medium text-gray-900">Filtros</h3>
-                            <button
-                                @click="showMobileFilters = !showMobileFilters"
-                                class="inline-flex items-center text-sm text-cyan-600 hover:text-cyan-800 transition-colors"
-                            >
+                            <button @click="showMobileFilters = !showMobileFilters"
+                                class="inline-flex items-center text-sm text-cyan-600 hover:text-cyan-800 transition-colors">
                                 <FunnelIcon class="h-4 w-4 mr-1" />
                                 {{ showMobileFilters ? 'Ocultar' : 'Mostrar' }}
                             </button>
@@ -694,13 +751,9 @@ const getClaseUrgencia = (fecha) => {
 
                         <!-- Búsqueda principal (siempre visible en móvil) -->
                         <div class="relative mb-3">
-                            <input
-                                v-model="filtros.busqueda"
-                                @keyup.enter="aplicarFiltrosTabla"
-                                type="text"
+                            <input v-model="filtros.busqueda" @keyup.enter="aplicarFiltrosTabla" type="text"
                                 placeholder="Buscar recordatorios..."
-                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                            />
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm" />
                             <MagnifyingGlassIcon class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                         </div>
 
@@ -711,11 +764,8 @@ const getClaseUrgencia = (fecha) => {
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Tipo
                                 </label>
-                                <select
-                                    v-model="filtros.tipo"
-                                    @change="aplicarFiltrosTabla"
-                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                                >
+                                <select v-model="filtros.tipo" @change="aplicarFiltrosTabla"
+                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm">
                                     <option value="">Todos los tipos</option>
                                     <option value="recordatorio_personal">Personal</option>
                                     <option value="vacuna_proxima">Vacuna próxima</option>
@@ -729,11 +779,8 @@ const getClaseUrgencia = (fecha) => {
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Estado
                                 </label>
-                                <select
-                                    v-model="filtros.estado"
-                                    @change="aplicarFiltrosTabla"
-                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm"
-                                >
+                                <select v-model="filtros.estado" @change="aplicarFiltrosTabla"
+                                    class="w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 focus:outline-none text-sm">
                                     <option value="todos">Todos</option>
                                     <option value="programado">📅 Programados</option>
                                     <option value="es_hoy">⏰ Para hoy</option>
@@ -745,19 +792,14 @@ const getClaseUrgencia = (fecha) => {
 
                             <!-- Botones móvil -->
                             <div class="flex space-x-2 pt-2">
-                                <button
-                                    @click="aplicarFiltrosTabla"
-                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors"
-                                >
+                                <button @click="aplicarFiltrosTabla"
+                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-cyan-600 text-sm font-medium text-white hover:bg-cyan-700 focus:outline-none transition-colors">
                                     <FunnelIcon class="h-4 w-4 mr-2" />
                                     Filtrar
                                 </button>
-                                <button
-                                    v-if="hasFilters"
-                                    @click="limpiarFiltros"
+                                <button v-if="hasFilters" @click="limpiarFiltros"
                                     class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
-                                    title="Limpiar filtros"
-                                >
+                                    title="Limpiar filtros">
                                     <XMarkIcon class="h-4 w-4" />
                                 </button>
                             </div>
@@ -772,22 +814,28 @@ const getClaseUrgencia = (fecha) => {
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Tipo
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Recordatorio
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Para quién
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Fecha
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Estado
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Acciones
                                     </th>
                                 </tr>
@@ -799,15 +847,18 @@ const getClaseUrgencia = (fecha) => {
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-8 w-8">
                                                 <div class="h-8 w-8 rounded-full flex items-center justify-center"
-                                                     :class="{
-                                                         'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
-                                                         'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
-                                                         'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
-                                                         'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
-                                                     }">
-                                                    <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'" class="h-4 w-4" />
-                                                    <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'" class="h-4 w-4" />
-                                                    <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'" class="h-4 w-4" />
+                                                    :class="{
+                                                        'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
+                                                        'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
+                                                        'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
+                                                        'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
+                                                    }">
+                                                    <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'"
+                                                        class="h-4 w-4" />
+                                                    <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'"
+                                                        class="h-4 w-4" />
+                                                    <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'"
+                                                        class="h-4 w-4" />
                                                     <ExclamationTriangleIcon v-else class="h-4 w-4" />
                                                 </div>
                                             </div>
@@ -820,7 +871,8 @@ const getClaseUrgencia = (fecha) => {
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="max-w-xs">
-                                            <p class="text-sm font-medium text-gray-900 truncate">{{ recordatorio.titulo }}</p>
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ recordatorio.titulo
+                                                }}</p>
                                             <p v-if="recordatorio.mensaje" class="text-sm text-gray-500 truncate mt-1">
                                                 {{ recordatorio.mensaje }}
                                             </p>
@@ -830,18 +882,23 @@ const getClaseUrgencia = (fecha) => {
                                         <div class="flex items-center">
                                             <div v-if="recordatorio.dependiente" class="flex items-center text-sm">
                                                 <div class="flex-shrink-0 h-6 w-6">
-                                                    <div class="h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center">
+                                                    <div
+                                                        class="h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center">
                                                         <UserGroupIcon class="h-3 w-3 text-purple-600" />
                                                     </div>
                                                 </div>
                                                 <div class="ml-2">
-                                                    <p class="text-sm font-medium text-gray-900">{{ recordatorio.dependiente.nombres }} {{ recordatorio.dependiente.apellidos }}</p>
-                                                    <p class="text-xs text-gray-500">{{ recordatorio.dependiente.parentesco }}</p>
+                                                    <p class="text-sm font-medium text-gray-900">{{
+                                                        recordatorio.dependiente.nombres }} {{
+                                                        recordatorio.dependiente.apellidos }}</p>
+                                                    <p class="text-xs text-gray-500">{{
+                                                        recordatorio.dependiente.parentesco }}</p>
                                                 </div>
                                             </div>
                                             <div v-else class="flex items-center text-sm">
                                                 <div class="flex-shrink-0 h-6 w-6">
-                                                    <div class="h-6 w-6 bg-cyan-100 rounded-full flex items-center justify-center">
+                                                    <div
+                                                        class="h-6 w-6 bg-cyan-100 rounded-full flex items-center justify-center">
                                                         <UserGroupIcon class="h-3 w-3 text-cyan-600" />
                                                     </div>
                                                 </div>
@@ -862,32 +919,33 @@ const getClaseUrgencia = (fecha) => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                                              :class="getEstadoColors(recordatorio.estado)">
-                                            {{ recordatorio.estado.charAt(0).toUpperCase() + recordatorio.estado.slice(1) }}
+                                            :class="getEstadoColors(recordatorio.estado)">
+                                            {{ recordatorio.estado.charAt(0).toUpperCase() +
+                                            recordatorio.estado.slice(1) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-3">
                                             <button @click="verRecordatorio(recordatorio)"
-                                                    class="text-cyan-600 hover:text-cyan-900 transition-colors duration-150"
-                                                    title="Ver detalles">
+                                                class="text-cyan-600 hover:text-cyan-900 transition-colors duration-150"
+                                                title="Ver detalles">
                                                 <EyeIcon class="h-4 w-4" />
                                             </button>
                                             <button v-if="['programado', 'es_hoy'].includes(recordatorio.estado)"
-                                                    @click="editarRecordatorio(recordatorio)"
-                                                    class="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
-                                                    title="Editar">
+                                                @click="editarRecordatorio(recordatorio)"
+                                                class="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
+                                                title="Editar">
                                                 <PencilIcon class="h-4 w-4" />
                                             </button>
                                             <button v-if="['programado', 'es_hoy'].includes(recordatorio.estado)"
-                                                    @click="marcarCompletado(recordatorio)"
-                                                    class="text-green-600 hover:text-green-900 transition-colors duration-150"
-                                                    title="Marcar como hecho">
+                                                @click="marcarCompletado(recordatorio)"
+                                                class="text-green-600 hover:text-green-900 transition-colors duration-150"
+                                                title="Marcar como hecho">
                                                 <CheckCircleIcon class="h-4 w-4" />
                                             </button>
                                             <button @click="eliminarRecordatorio(recordatorio)"
-                                                    class="text-red-600 hover:text-red-900 transition-colors duration-150"
-                                                    title="Eliminar">
+                                                class="text-red-600 hover:text-red-900 transition-colors duration-150"
+                                                title="Eliminar">
                                                 <TrashIcon class="h-4 w-4" />
                                             </button>
                                         </div>
@@ -899,9 +957,10 @@ const getClaseUrgencia = (fecha) => {
                                         <div class="flex flex-col items-center">
                                             <BellIcon class="h-12 w-12 text-gray-400 mb-4" />
                                             <h3 class="text-sm font-medium text-gray-900 mb-2">No hay recordatorios</h3>
-                                            <p class="text-sm text-gray-500 mb-4">Comienza creando tu primer recordatorio</p>
+                                            <p class="text-sm text-gray-500 mb-4">Comienza creando tu primer
+                                                recordatorio</p>
                                             <button @click="mostrarModalNuevo = true"
-                                                    class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors duration-150">
+                                                class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors duration-150">
                                                 <PlusIcon class="h-4 w-4 mr-2" />
                                                 Crear recordatorio
                                             </button>
@@ -916,33 +975,40 @@ const getClaseUrgencia = (fecha) => {
                     <div class="md:hidden">
                         <div class="divide-y divide-gray-200">
                             <div v-for="recordatorio in recordatorios.data" :key="recordatorio.id"
-                                 :class="`p-4 hover:bg-gray-50 transition-colors duration-150 ${getClaseUrgencia(recordatorio.fecha_recordatorio)}`">
+                                :class="`p-4 hover:bg-gray-50 transition-colors duration-150 ${getClaseUrgencia(recordatorio.fecha_recordatorio)}`">
                                 <div class="flex items-start justify-between">
                                     <div class="flex items-start space-x-3 flex-1">
                                         <div class="flex-shrink-0 h-8 w-8">
-                                            <div class="h-8 w-8 rounded-full flex items-center justify-center"
-                                                 :class="{
-                                                     'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
-                                                     'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
-                                                     'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
-                                                     'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
-                                                 }">
-                                                <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'" class="h-4 w-4" />
-                                                <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'" class="h-4 w-4" />
-                                                <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'" class="h-4 w-4" />
+                                            <div class="h-8 w-8 rounded-full flex items-center justify-center" :class="{
+                                                'bg-blue-100 text-blue-600': recordatorio.tipo === 'recordatorio_personal',
+                                                'bg-green-100 text-green-600': recordatorio.tipo === 'vacuna_proxima',
+                                                'bg-purple-100 text-purple-600': recordatorio.tipo === 'cita_programada',
+                                                'bg-orange-100 text-orange-600': recordatorio.tipo === 'refuerzo_pendiente'
+                                            }">
+                                                <BellIcon v-if="recordatorio.tipo === 'recordatorio_personal'"
+                                                    class="h-4 w-4" />
+                                                <CalendarDaysIcon v-else-if="recordatorio.tipo === 'vacuna_proxima'"
+                                                    class="h-4 w-4" />
+                                                <ClockIcon v-else-if="recordatorio.tipo === 'cita_programada'"
+                                                    class="h-4 w-4" />
                                                 <ExclamationTriangleIcon v-else class="h-4 w-4" />
                                             </div>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center justify-between mb-1">
-                                                <p class="text-sm font-medium text-gray-900 truncate">{{ recordatorio.titulo }}</p>
-                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2"
-                                                      :class="getEstadoColors(recordatorio.estado)">
-                                                    {{ recordatorio.estado.charAt(0).toUpperCase() + recordatorio.estado.slice(1) }}
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{
+                                                    recordatorio.titulo }}</p>
+                                                <span
+                                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2"
+                                                    :class="getEstadoColors(recordatorio.estado)">
+                                                    {{ recordatorio.estado.charAt(0).toUpperCase() +
+                                                    recordatorio.estado.slice(1) }}
                                                 </span>
                                             </div>
-                                            <p class="text-sm text-gray-500 mb-2">{{ formatearTipoRecordatorio(recordatorio.tipo) }}</p>
-                                            <p v-if="recordatorio.mensaje" class="text-sm text-gray-600 mb-2 line-clamp-2">
+                                            <p class="text-sm text-gray-500 mb-2">{{
+                                                formatearTipoRecordatorio(recordatorio.tipo) }}</p>
+                                            <p v-if="recordatorio.mensaje"
+                                                class="text-sm text-gray-600 mb-2 line-clamp-2">
                                                 {{ recordatorio.mensaje }}
                                             </p>
                                             <div class="flex items-center justify-between mb-2">
@@ -953,7 +1019,8 @@ const getClaseUrgencia = (fecha) => {
                                                         {{ recordatorio.hora_recordatorio }}
                                                     </span>
                                                 </div>
-                                                <div v-if="recordatorio.dependiente" class="flex items-center text-xs text-purple-600">
+                                                <div v-if="recordatorio.dependiente"
+                                                    class="flex items-center text-xs text-purple-600">
                                                     <UserGroupIcon class="w-3 h-3 mr-1" />
                                                     {{ recordatorio.dependiente.nombres }}
                                                 </div>
@@ -967,25 +1034,25 @@ const getClaseUrgencia = (fecha) => {
                                 </div>
                                 <div class="mt-3 flex items-center justify-end space-x-3">
                                     <button @click="verRecordatorio(recordatorio)"
-                                            class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors duration-150"
-                                            title="Ver detalles">
+                                        class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors duration-150"
+                                        title="Ver detalles">
                                         <EyeIcon class="h-4 w-4" />
                                     </button>
                                     <button v-if="['programado', 'es_hoy'].includes(recordatorio.estado)"
-                                            @click="editarRecordatorio(recordatorio)"
-                                            class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-150"
-                                            title="Editar">
+                                        @click="editarRecordatorio(recordatorio)"
+                                        class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-150"
+                                        title="Editar">
                                         <PencilIcon class="h-4 w-4" />
                                     </button>
                                     <button v-if="['programado', 'es_hoy'].includes(recordatorio.estado)"
-                                            @click="marcarCompletado(recordatorio)"
-                                            class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-150"
-                                            title="Marcar como hecho">
+                                        @click="marcarCompletado(recordatorio)"
+                                        class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-150"
+                                        title="Marcar como hecho">
                                         <CheckCircleIcon class="h-4 w-4" />
                                     </button>
                                     <button @click="eliminarRecordatorio(recordatorio)"
-                                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
-                                            title="Eliminar">
+                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                                        title="Eliminar">
                                         <TrashIcon class="h-4 w-4" />
                                     </button>
                                 </div>
@@ -996,7 +1063,7 @@ const getClaseUrgencia = (fecha) => {
                                 <h3 class="text-sm font-medium text-gray-900 mb-2">No hay recordatorios</h3>
                                 <p class="text-sm text-gray-500 mb-4">Comienza creando tu primer recordatorio</p>
                                 <button @click="mostrarModalNuevo = true"
-                                        class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors duration-150">
+                                    class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors duration-150">
                                     <PlusIcon class="h-4 w-4 mr-2" />
                                     Crear recordatorio
                                 </button>
@@ -1007,20 +1074,19 @@ const getClaseUrgencia = (fecha) => {
 
                 <!-- Paginación -->
                 <div v-if="recordatorios.data.length > 0 && (recordatorios.prev_page_url || recordatorios.next_page_url)"
-                     class="mt-6 flex items-center justify-between">
+                    class="mt-6 flex items-center justify-between">
                     <div class="text-sm text-gray-500">
-                        Mostrando {{ recordatorios.from }} a {{ recordatorios.to }} de {{ recordatorios.total }} resultados
+                        Mostrando {{ recordatorios.from }} a {{ recordatorios.to }} de {{ recordatorios.total }}
+                        resultados
                     </div>
                     <div class="flex items-center space-x-2">
-                        <Link v-if="recordatorios.prev_page_url"
-                              :href="recordatorios.prev_page_url"
-                              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-150">
-                            Anterior
+                        <Link v-if="recordatorios.prev_page_url" :href="recordatorios.prev_page_url"
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-150">
+                        Anterior
                         </Link>
-                        <Link v-if="recordatorios.next_page_url"
-                              :href="recordatorios.next_page_url"
-                              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-150">
-                            Siguiente
+                        <Link v-if="recordatorios.next_page_url" :href="recordatorios.next_page_url"
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-150">
+                        Siguiente
                         </Link>
                     </div>
                 </div>
@@ -1028,7 +1094,8 @@ const getClaseUrgencia = (fecha) => {
         </div>
 
         <!-- Modal Nuevo Recordatorio -->
-        <div v-if="mostrarModalNuevo" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div v-if="mostrarModalNuevo"
+            class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between p-6 border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900">Nuevo recordatorio</h3>
@@ -1048,12 +1115,11 @@ const getClaseUrgencia = (fecha) => {
                                 <div class="space-y-3">
                                     <!-- Opción para mí mismo -->
                                     <div class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
-                                         :class="{ 'border-cyan-500 bg-cyan-50': !formularioNuevo.dependiente_id }"
-                                         @click="formularioNuevo.dependiente_id = ''">
-                                        <input type="radio"
-                                               :checked="!formularioNuevo.dependiente_id"
-                                               @change="formularioNuevo.dependiente_id = ''"
-                                               class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
+                                        :class="{ 'border-cyan-500 bg-cyan-50': !formularioNuevo.dependiente_id }"
+                                        @click="formularioNuevo.dependiente_id = ''">
+                                        <input type="radio" :checked="!formularioNuevo.dependiente_id"
+                                            @change="formularioNuevo.dependiente_id = ''"
+                                            class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
                                         <div class="ml-3">
                                             <div class="text-sm font-medium text-gray-900">Para mí</div>
                                             <div class="text-xs text-gray-500">{{ user.name }}</div>
@@ -1062,18 +1128,19 @@ const getClaseUrgencia = (fecha) => {
 
                                     <!-- Opciones para dependientes -->
                                     <template v-if="dependientes.length > 0">
-                                        <div v-for="dependiente in dependientes"
-                                             :key="dependiente.id"
-                                             class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
-                                             :class="{ 'border-cyan-500 bg-cyan-50': formularioNuevo.dependiente_id == dependiente.id }"
-                                             @click="formularioNuevo.dependiente_id = dependiente.id">
+                                        <div v-for="dependiente in dependientes" :key="dependiente.id"
+                                            class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+                                            :class="{ 'border-cyan-500 bg-cyan-50': formularioNuevo.dependiente_id == dependiente.id }"
+                                            @click="formularioNuevo.dependiente_id = dependiente.id">
                                             <input type="radio"
-                                                   :checked="formularioNuevo.dependiente_id == dependiente.id"
-                                                   @change="formularioNuevo.dependiente_id = dependiente.id"
-                                                   class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
+                                                :checked="formularioNuevo.dependiente_id == dependiente.id"
+                                                @change="formularioNuevo.dependiente_id = dependiente.id"
+                                                class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
                                             <div class="ml-3">
-                                                <div class="text-sm font-medium text-gray-900">{{ dependiente.nombres }} {{ dependiente.apellidos }}</div>
-                                                <div class="text-xs text-gray-500">{{ dependiente.parentesco }} - {{ dependiente.edad }} años</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ dependiente.nombres }}
+                                                    {{ dependiente.apellidos }}</div>
+                                                <div class="text-xs text-gray-500">{{ dependiente.parentesco }} - {{
+                                                    dependiente.edad }} años</div>
                                             </div>
                                         </div>
                                     </template>
@@ -1082,9 +1149,9 @@ const getClaseUrgencia = (fecha) => {
                                     <div v-if="dependientes.length === 0" class="text-center py-4">
                                         <p class="text-sm text-gray-500 mb-3">No tienes dependientes registrados</p>
                                         <Link href="/paciente/dependientes"
-                                              class="inline-flex items-center text-sm text-cyan-600 hover:text-cyan-700 font-medium">
-                                            <PlusIcon class="w-4 h-4 mr-1" />
-                                            Agregar dependiente
+                                            class="inline-flex items-center text-sm text-cyan-600 hover:text-cyan-700 font-medium">
+                                        <PlusIcon class="w-4 h-4 mr-1" />
+                                        Agregar dependiente
                                         </Link>
                                     </div>
                                 </div>
@@ -1098,7 +1165,7 @@ const getClaseUrgencia = (fecha) => {
                                     Tipo de recordatorio <span class="text-red-500">*</span>
                                 </label>
                                 <select v-model="formularioNuevo.tipo" required
-                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
                                     <option value="recordatorio_personal">Recordatorio personal</option>
                                     <option value="vacuna_proxima">Próxima vacuna</option>
                                     <option value="refuerzo_pendiente">Refuerzo pendiente</option>
@@ -1110,8 +1177,8 @@ const getClaseUrgencia = (fecha) => {
                                     Título <span class="text-red-500">*</span>
                                 </label>
                                 <input v-model="formularioNuevo.titulo" type="text" required
-                                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
-                                       placeholder="Título del recordatorio">
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
+                                    placeholder="Título del recordatorio">
                             </div>
 
                             <div>
@@ -1119,8 +1186,8 @@ const getClaseUrgencia = (fecha) => {
                                     Descripción
                                 </label>
                                 <textarea v-model="formularioNuevo.mensaje" rows="3"
-                                          class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
-                                          placeholder="Información adicional sobre el recordatorio"></textarea>
+                                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500"
+                                    placeholder="Información adicional sobre el recordatorio"></textarea>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -1129,13 +1196,15 @@ const getClaseUrgencia = (fecha) => {
                                         Fecha <span class="text-red-500">*</span>
                                     </label>
                                     <input v-model="formularioNuevo.fecha_recordatorio" type="date" required
-                                           :min="new Date().toISOString().split('T')[0]"
-                                           class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
+                                        :min="todayLocal" @change="validarFechaHora"
+                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Hora (opcional)</label>
                                     <input v-model="formularioNuevo.hora_recordatorio" type="time"
-                                           class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
+                                        :min="minHoraParaFecha || undefined" @input="validarFechaHora"
+                                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
+                                    <InputError :message="errorHora" class="mt-1" />
                                 </div>
                             </div>
                         </div>
@@ -1144,11 +1213,11 @@ const getClaseUrgencia = (fecha) => {
                     <!-- Botones de acción -->
                     <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
                         <button type="button" @click="cerrarModales"
-                                class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
                             Cancelar
                         </button>
                         <button type="submit"
-                                class="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium">
+                            class="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium">
                             Crear recordatorio
                         </button>
                     </div>
@@ -1157,7 +1226,8 @@ const getClaseUrgencia = (fecha) => {
         </div>
 
         <!-- Modal Gestión de Dependientes -->
-        <div v-if="mostrarModalDependientes" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div v-if="mostrarModalDependientes"
+            class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between p-6 border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900">Gestión de dependientes</h3>
@@ -1168,21 +1238,23 @@ const getClaseUrgencia = (fecha) => {
                 <div class="p-6">
                     <div class="text-center mb-6">
                         <Link :href="route('paciente.dependientes.index')"
-                              class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-700 rounded-lg text-sm font-medium">
-                            <PlusIcon class="w-4 h-4 mr-2" />
-                            Gestionar dependientes
+                            class="inline-flex items-center px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-700 rounded-lg text-sm font-medium">
+                        <PlusIcon class="w-4 h-4 mr-2" />
+                        Gestionar dependientes
                         </Link>
                     </div>
 
                     <div v-if="dependientes.length === 0" class="text-center py-8">
                         <UserGroupIcon class="mx-auto h-12 w-12 text-gray-400" />
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No hay dependientes registrados</h3>
-                        <p class="mt-1 text-sm text-gray-500">Registra a tus hijos o personas a tu cargo para gestionar sus recordatorios de vacunación.</p>
+                        <p class="mt-1 text-sm text-gray-500">Registra a tus hijos o personas a tu cargo para gestionar
+                            sus
+                            recordatorios de vacunación.</p>
                     </div>
 
                     <div v-else class="space-y-3">
                         <div v-for="dependiente in dependientes" :key="dependiente.id"
-                             class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                             <div>
                                 <h4 class="font-medium text-gray-900">{{ dependiente.nombre_completo }}</h4>
                                 <p class="text-sm text-gray-500">
@@ -1207,31 +1279,29 @@ const getClaseUrgencia = (fecha) => {
                     </h3>
                     <div class="mt-2 px-7 py-3 text-center">
                         <p class="text-sm text-gray-500 text-center">
-                            ¿Estás seguro de que deseas eliminar el recordatorio <strong>"{{ recordatorioToDelete?.titulo }}"</strong>?
+                            ¿Estás seguro de que deseas eliminar el recordatorio <strong>"{{
+                                recordatorioToDelete?.titulo
+                                }}"</strong>?
                         </p>
                         <p class="text-xs text-gray-500 mt-2 text-center">
                             Esta acción no se puede deshacer.
                         </p>
                     </div>
                     <div class="items-center px-4 py-3 flex space-x-4 justify-center">
-                        <button
-                            @click="closeDeleteModal"
-                            type="button"
-                            :disabled="isDeleting"
-                            class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-cyan-500 w-full disabled:opacity-50"
-                        >
+                        <button @click="closeDeleteModal" type="button" :disabled="isDeleting"
+                            class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-cyan-500 w-full disabled:opacity-50">
                             Cancelar
                         </button>
-                        <button
-                            @click="confirmDelete"
-                            type="button"
-                            :disabled="isDeleting"
-                            class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-red-500 w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+                        <button @click="confirmDelete" type="button" :disabled="isDeleting"
+                            class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-red-500 w-full disabled:opacity-50 disabled:cursor-not-allowed">
                             <span v-if="isDeleting" class="mr-2">
                                 <svg class="animate-spin h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4">
+                                    </circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
                                 </svg>
                             </span>
                             {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
