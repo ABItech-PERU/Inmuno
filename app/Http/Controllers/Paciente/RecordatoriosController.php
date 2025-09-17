@@ -282,6 +282,7 @@ class RecordatoriosController extends Controller
         // Detectar si estamos en desarrollo (no hay worker corriendo) o la conexión de queue es sync
         $enviarSincrono = config('app.env') === 'local' || config('queue.default') === 'sync';
 
+
         if ($enviarSincrono) {
             // Envío síncrono directo para desarrollo
             try {
