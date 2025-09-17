@@ -33,14 +33,15 @@ class RecordatorioNotification extends Notification
 
         $subject = "Recordatorio: " . ($r->titulo ?? 'Recordatorio');
         if ($this->stage && is_numeric($this->stage)) {
-            $subject = ($this->stage == 0) ? "Recordatorio (hoy): {$r->titulo}" : "Recordatorio ({$this->stage} días): {$r->titulo}";
+            $subject = "🔔 Recordatorio en {$this->stage} día" . ($this->stage > 1 ? 's' : '') . ": {$r->titulo}";
         } elseif ($this->stage === 'created') {
-            $subject = "Recordatorio creado: {$r->titulo}";
+            $subject = "✅ ¡Recordatorio creado! {$r->titulo}";
         } elseif ($this->stage === 'reminder') {
-            $subject = "Recordatorio programado: {$r->titulo}";
+            $tipo = $r->vacuna ? 'vacuna' : 'cita';
+            $subject = "💉 ¡Recuerda tu {$tipo}! {$r->titulo}";
         }
 
-        $url = URL::to('/recordatorios/' . $r->id);
+        $url = URL::to('/paciente/recordatorios/' . $r->id);
 
         return (new MailMessage)
             ->subject($subject)
