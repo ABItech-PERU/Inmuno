@@ -270,7 +270,7 @@ class RecordatoriosController extends Controller
             'titulo' => $validated['titulo'],
             'mensaje' => $validated['mensaje'],
             'fecha_recordatorio' => $validated['fecha_recordatorio'],
-            'hora_recordatorio' => $validated['hora_recordatorio'],
+            'hora_recordatorio' => $validated['hora_recordatorio'] ?? null,
             'estado' => 'programado',
             'metodo_envio' => 'sistema'
         ]);
