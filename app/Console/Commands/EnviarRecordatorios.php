@@ -30,12 +30,11 @@ class EnviarRecordatorios extends Command
 
             foreach ($recordatorios as $r) {
                 EnviarRecordatorioJob::dispatch($r->id, $offset)->onQueue('emails');
-                $this->line("Enqueued recordatorio {$r->id} para fecha {$fechaObjetivo} (offset {$offset})");
+                $this->line("Encolado recordatorio #{$r->id} para {$fechaObjetivo} ({$offset} dia" . ($offset != 1 ? 's' : '') . ")");
             }
         }
 
-        $this->info('Proceso completado.');
-
+        $this->info('Proceso de envio completado.');
         return 0;
     }
 }
