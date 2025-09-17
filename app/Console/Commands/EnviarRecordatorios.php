@@ -25,6 +25,7 @@ class EnviarRecordatorios extends Command
 
             $recordatorios = Recordatorio::where('estado','programado')
                 ->whereDate('fecha_recordatorio', $fechaObjetivo)
+                ->whereNull('enviado_en')
                 ->get();
 
             foreach ($recordatorios as $r) {
