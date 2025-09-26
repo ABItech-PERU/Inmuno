@@ -209,7 +209,7 @@ class EsquemaVacunacionController extends Controller
         $request->validate([
             'dosis_id' => 'required|exists:dosis_vacunas,id',
             'persona_tipo' => 'required|in:usuario,dependiente',
-            'persona_id' => 'required|integer',
+            'persona_id' => 'required_if:persona_tipo,dependiente|nullable|integer',
             'fecha_aplicacion' => 'required|date|before_or_equal:today',
             'centro_salud_id' => 'nullable|exists:centros_salud,id',
             'observaciones' => 'nullable|string|max:1000'
@@ -260,12 +260,19 @@ class EsquemaVacunacionController extends Controller
      */
     public function getCentrosSalud()
     {
-        $centros = CentroSalud::activos()
-            ->select('id', 'nombre', 'direccion', 'distrito')
-            ->orderBy('nombre')
-            ->get();
+        try {
+            // Asegurarnos de seleccionar columnas existentes. En la tabla el campo es 'distrito_codigo'
+            $centros = CentroSalud::activos()
+                ->select('id', 'nombre', 'direccion', 'distrito_codigo')
+                ->orderBy('nombre')
+                ->get();
 
-        return response()->json($centros);
+            return response()->json($centros);
+        } catch (\Exception $e) {
+            // Loguear el error y devolver un JSON con status 500 para que el frontend lo maneje
+            Log::error('Error obteniendo centros de salud: ' . $e->getMessage());
+            return response()->json(['error' => 'Error cargando centros de salud'], 500);
+        }
     }
 
     /**
