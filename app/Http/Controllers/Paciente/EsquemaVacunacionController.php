@@ -8,6 +8,7 @@ use App\Models\AplicacionVacuna;
 use App\Models\DosisVacuna;
 use App\Models\CentroSalud;
 use App\Models\Dependiente;
+use App\Models\Recordatorio;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,7 +99,23 @@ class EsquemaVacunacionController extends Controller
         // Determinar la persona y sus datos
         if ($persona_tipo === 'paciente') {
             $persona = $user;
-            $nombreCompleto = $user->name;
+            // Construir nombre completo de forma robusta:
+            // - Si existen nombres y apellidos: "nombres apellidos"
+            // - Si solo existen nombres: usar nombres
+            // - Si solo existen apellidos: usar apellidos
+            // - Si ninguno existe, fallback a name
+            // En el modelo User el campo de nombre se llama `name`, no `nombres`
+            $nombres = trim($user->name ?? '');
+            $apellidos = trim($user->apellidos ?? '');
+            if ($nombres !== '' && $apellidos !== '') {
+                $nombreCompleto = $nombres . ' ' . $apellidos;
+            } elseif ($nombres !== '') {
+                $nombreCompleto = $nombres;
+            } elseif ($apellidos !== '') {
+                $nombreCompleto = $apellidos;
+            } else {
+                $nombreCompleto = $user->name;
+            }
             $esUsuario = true;
         } else {
             // Verificar que el dependiente pertenece al usuario
@@ -121,8 +138,8 @@ class EsquemaVacunacionController extends Controller
             $mesesRestantes = 0;
         }
 
-        // Obtener todos los esquemas aplicables
-        $esquemas = $this->obtenerEsquemasParaPersona($persona, $edadMeses, !$esUsuario);
+    // Obtener todos los esquemas (mostrar agrupado por esquema). No filtrar por edad aquí para la vista detallada
+    $esquemas = $this->obtenerEsquemasParaPersona($persona, $edadMeses, !$esUsuario, true);
 
         // Obtener histórico completo de aplicaciones
         $aplicacionesHistorico = [];
@@ -254,10 +271,10 @@ class EsquemaVacunacionController extends Controller
     /**
      * Obtener esquemas de vacunación para una persona (usuario o dependiente)
      */
-    private function obtenerEsquemasParaPersona($persona, $edadMeses, $esDependiente = false)
+    private function obtenerEsquemasParaPersona($persona, $edadMeses, $esDependiente = false, $ignorarEdad = false)
     {
-        // Si no hay edad definida, retornar colección vacía
-        if ($edadMeses === null) {
+        // Si no hay edad definida y no indicamos ignorar el filtro de edad, retornar colección vacía
+        if ($edadMeses === null && !$ignorarEdad) {
             return collect([]);
         }
 
@@ -271,24 +288,76 @@ class EsquemaVacunacionController extends Controller
             }])
             ->get();
 
-        // Filtrar por edad en PHP para evitar problemas de consulta
-        $esquemasFiltrados = $esquemas->filter(function($esquema) use ($edadMeses) {
-            $cumpleEdadInicio = $esquema->edad_inicio === null || $esquema->edad_inicio <= $edadMeses;
-            $cumpleEdadFin = $esquema->edad_fin === null || $esquema->edad_fin >= $edadMeses;
-            return $cumpleEdadInicio && $cumpleEdadFin;
-        });
+        // Filtrar por edad en PHP para evitar problemas de consulta, a menos que se indique ignorar el filtro
+        if ($ignorarEdad) {
+            $esquemasFiltrados = $esquemas;
+        } else {
+            $esquemasFiltrados = $esquemas->filter(function($esquema) use ($edadMeses) {
+                $cumpleEdadInicio = $esquema->edad_inicio === null || $esquema->edad_inicio <= $edadMeses;
+                $cumpleEdadFin = $esquema->edad_fin === null || $esquema->edad_fin >= $edadMeses;
+                return $cumpleEdadInicio && $cumpleEdadFin;
+            });
+        }
 
-        // Procesar cada esquema para determinar el estado de las dosis
-        return $esquemasFiltrados->map(function ($esquema) use ($persona, $esDependiente) {
-            $dosisConEstado = $esquema->dosisVacunas->map(function ($dosis) use ($persona, $esDependiente) {
+        // Cargar recordatorios relevantes del usuario (y dependientes) para poder marcar dosis con recordatorio
+        $userId = Auth::id();
+        // Agrupar por dosis_vacuna_id si existe, y también por vacuna_id para fallback
+        $recordatoriosUsuario = Recordatorio::where('user_id', $userId)
+            ->whereIn('estado', ['programado', 'es_hoy', 'no_hice'])
+            ->get();
+
+        $recordByDosis = $recordatoriosUsuario->filter(fn($r) => $r->dosis_vacuna_id)->groupBy('dosis_vacuna_id');
+        $recordByVacuna = $recordatoriosUsuario->filter(fn($r) => !$r->dosis_vacuna_id)->groupBy('vacuna_id');
+
+        // Calcular la primera dosis pendiente por vacuna GLOBAL (no por esquema) para el fallback
+        $firstPendingByVacunaGlobal = [];
+        // Recolectar todas las dosis de los esquemas filtrados
+        $allDosis = $esquemasFiltrados->flatMap(function($esq) {
+            return $esq->dosisVacunas;
+        });
+        foreach ($allDosis as $dItem) {
+            $vacId = $dItem->vacuna_id ?? null;
+            if ($vacId === null) continue;
+            $apForD = $this->buscarAplicacion($persona, $dItem, $esDependiente);
+            if ($apForD === null) {
+                if (!isset($firstPendingByVacunaGlobal[$vacId]) || $dItem->numero_dosis < $firstPendingByVacunaGlobal[$vacId]) {
+                    $firstPendingByVacunaGlobal[$vacId] = $dItem->numero_dosis;
+                }
+            }
+        }
+
+    // Procesar cada esquema para determinar el estado de las dosis
+        return $esquemasFiltrados->map(function ($esquema) use ($persona, $esDependiente, $recordatoriosUsuario, $recordByDosis, $recordByVacuna, $firstPendingByVacunaGlobal) {
+
+            $dosisConEstado = $esquema->dosisVacunas->map(function ($dosis) use ($persona, $esDependiente, $recordatoriosUsuario, $firstPendingByVacunaGlobal, $recordByDosis, $recordByVacuna) {
                 $aplicacion = $this->buscarAplicacion($persona, $dosis, $esDependiente);
+                $vacunaId = $dosis->vacuna_id ?? null;
+                $tieneRecordatorio = false;
+                $primerRecordatorio = null;
+
+                // 1) Buscar recordatorio directo por dosis_vacuna_id
+                if (isset($recordByDosis[$dosis->id]) && $recordByDosis[$dosis->id]->count() > 0) {
+                    $tieneRecordatorio = true;
+                    $primerRecordatorio = $recordByDosis[$dosis->id]->first();
+                } else {
+                    // 2) Fallback: buscar por vacuna_id y marcar sólo si es la primera pendiente para esa vacuna
+                    if ($vacunaId !== null && isset($recordByVacuna[$vacunaId]) && $recordByVacuna[$vacunaId]->count() > 0) {
+                        if (isset($firstPendingByVacunaGlobal[$vacunaId]) && $dosis->numero_dosis == $firstPendingByVacunaGlobal[$vacunaId]) {
+                            $tieneRecordatorio = true;
+                            $primerRecordatorio = $recordByVacuna[$vacunaId]->first();
+                        }
+                    }
+                }
 
                 return [
                     'dosis' => $dosis,
                     'aplicada' => $aplicacion !== null,
                     'aplicacion' => $aplicacion,
                     'puede_aplicar' => $this->puedeAplicarDosis($persona, $dosis, $esDependiente),
-                    'dias_para_aplicacion' => $this->calcularDiasParaAplicacion($persona, $dosis, $esDependiente)
+                    'dias_para_aplicacion' => $this->calcularDiasParaAplicacion($persona, $dosis, $esDependiente),
+                    // Marcar si existe un recordatorio pendiente/programado para esta vacuna (solo la dosis relevante)
+                    'tiene_recordatorio' => $tieneRecordatorio,
+                    'recordatorio' => $primerRecordatorio,
                 ];
             });
 
