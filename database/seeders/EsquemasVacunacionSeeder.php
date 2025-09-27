@@ -125,6 +125,7 @@ class EsquemasVacunacionSeeder extends Seeder
                 'obligatorio' => true,
                 'activo' => true
             ],
+
             [
                 'nombre' => 'Jóvenes VPH',
                 'descripcion' => 'Vacuna VPH para adolescentes de 14-18 años que no recibieron la vacuna en la edad recomendada (esquema de recuperación)',
@@ -132,7 +133,7 @@ class EsquemasVacunacionSeeder extends Seeder
                 'edad_inicio' => 168, // 14 años en meses
                 'edad_fin' => 216,    // 18 años en meses
                 'obligatorio' => false,
-                'activo' => true
+                'activo' => false
             ],
             [
                 'nombre' => 'Adultos',
@@ -141,7 +142,7 @@ class EsquemasVacunacionSeeder extends Seeder
                 'edad_inicio' => 216, // 18 años en meses
                 'edad_fin' => 720,    // 60 años en meses
                 'obligatorio' => false,
-                'activo' => true
+                'activo' => false
             ],
             [
                 'nombre' => 'Gestantes',
@@ -150,7 +151,7 @@ class EsquemasVacunacionSeeder extends Seeder
                 'edad_inicio' => null,
                 'edad_fin' => null,
                 'obligatorio' => true,
-                'activo' => true
+                'activo' => false
             ],
             [
                 'nombre' => 'Adultos Mayores',
@@ -159,7 +160,7 @@ class EsquemasVacunacionSeeder extends Seeder
                 'edad_inicio' => 720, // 60 años en meses
                 'edad_fin' => null,
                 'obligatorio' => true,
-                'activo' => true
+                'activo' => false
             ]
         ];
 

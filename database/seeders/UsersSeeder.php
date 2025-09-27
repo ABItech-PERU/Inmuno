@@ -31,6 +31,6 @@ class UsersSeeder extends Seeder
             'se_registro' => 0,
         ])->assignRole('PACIENTE');
 
-        User::factory(10)->create();
+        // User::factory(10)->create();
     }
 }
