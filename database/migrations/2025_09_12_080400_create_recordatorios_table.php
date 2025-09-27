@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // paciente
             $table->foreignId('dependiente_id')->nullable()->constrained('dependientes')->onDelete('cascade'); // para recordatorios de dependientes
             $table->foreignId('vacuna_id')->nullable()->constrained('vacunas')->onDelete('set null');
+            // link a dosis específica (nullable): agregado en migración principal según petición
+            $table->foreignId('dosis_vacuna_id')->nullable()->constrained('dosis_vacunas')->onDelete('set null');
             $table->foreignId('cita_id')->nullable()->constrained('citas')->onDelete('set null');
             $table->string('tipo'); // vacuna_proxima, cita_programada, refuerzo_pendiente, recordatorio_personal
             $table->string('titulo');

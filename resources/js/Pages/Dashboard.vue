@@ -81,7 +81,7 @@ const quickActions = computed(() => {
                 icon: MapPinIcon,
                 color: 'bg-gradient-to-r from-red-400 to-pink-400',
                 textColor: 'text-red-700',
-                route: 'health-centers.index'
+                route: '/centros-de-salud'
             }
         ];
     } else if (isMedico) {

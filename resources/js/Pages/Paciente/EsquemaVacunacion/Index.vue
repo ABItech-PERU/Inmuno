@@ -305,8 +305,8 @@ const getBotonAccion = (estadisticas) => {
                                         <span>{{ esquemaData.estadisticas.pendientes }} pendientes</span>
                                     </div>
                                     <!-- Botón de Acción Contextual -->
-                                    <Link :href="route('paciente.esquema-vacunacion.show', { persona_tipo: 'paciente' })"
-                                          :class="['inline-flex items-center justify-center px-3 py-2 text-white text-xs font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200 ml-0 sm:ml-2 w-full sm:w-auto bg-gradient-to-r', getBotonAccion(esquemaData.estadisticas).color]">
+                        <Link :href="(function(){ const id = (esquemaData && esquemaData.esquema && esquemaData.esquema.id) ? esquemaData.esquema.id : esquemaId; return route('paciente.esquema-vacunacion.show', { persona_tipo: 'paciente' }) + (id ? ('#esquema-' + id) : ''); })()"
+                            :class="['inline-flex items-center justify-center px-3 py-2 text-white text-xs font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200 ml-0 sm:ml-2 w-full sm:w-auto bg-gradient-to-r', getBotonAccion(esquemaData.estadisticas).color]">
                                         <component :is="getBotonAccion(esquemaData.estadisticas).icono" class="h-3 w-3 mr-2" />
                                         {{ getBotonAccion(esquemaData.estadisticas).texto }}
                                     </Link>

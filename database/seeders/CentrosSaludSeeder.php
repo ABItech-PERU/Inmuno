@@ -17,15 +17,15 @@ class CentrosSaludSeeder extends Seeder
             // Provincia Huánuco (1001) - Huánuco
             [
                 'codigo' => 'H1001',
-                'nombre' => 'Hospital Hermilio Valdizán - Huánuco',
-                'direccion' => 'Av. Mariscal Cáceres s/n, Huánuco',
+                'nombre' => 'HOSPITAL REGIONAL HERMILIO VALDIZAN MEDRANO',
+                'direccion' => 'Av. Mariscal Cáceres s/n',
                 'telefono' => '062-421000',
                 'email' => 'hospital.hv@minsa.gob.pe',
                 'tipo' => 'Hospital',
                 'nivel_atencion' => 'II',
                 'distrito_codigo' => '100101',
-                'latitud' => -9.9300,
-                'longitud' => -76.2420,
+                'latitud' => -9.927934,
+                'longitud' => -76.236154,
                 'capacidad' => 120,
                 'servicios' => json_encode(['Medicina General', 'Emergencias', 'Obstetricia', 'Pediatría', 'Laboratorio']),
                 'director_medico' => 'Dr. Víctor Huamán',
@@ -36,7 +36,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'CS1001A',
                 'nombre' => 'Centro de Salud San Sebastián',
-                'direccion' => 'Jr. Dos de Mayo 456, Huánuco',
+                'direccion' => 'Jr. Dos de Mayo 456',
                 'telefono' => '062-422111',
                 'email' => 'cs.sansebastian@minsa.gob.pe',
                 'tipo' => 'Centro de Salud',
@@ -56,7 +56,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'H1002',
                 'nombre' => 'Hospital de Apoyo Ambo',
-                'direccion' => 'Plaza de Armas s/n, Ambo',
+                'direccion' => 'Plaza de Armas s/n',
                 'telefono' => '062-251200',
                 'email' => 'hospital.ambo@minsa.gob.pe',
                 'tipo' => 'Hospital',
@@ -76,7 +76,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'CS1003A',
                 'nombre' => 'Centro de Salud La Unión',
-                'direccion' => 'Jr. 28 de Julio, La Unión',
+                'direccion' => 'Jr. 28 de Julio',
                 'telefono' => '062-271000',
                 'email' => 'cs.launion@minsa.gob.pe',
                 'tipo' => 'Centro de Salud',
@@ -116,7 +116,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'H1005',
                 'nombre' => 'Hospital de Apoyo Llata',
-                'direccion' => 'Av. Centenario s/n, Llata',
+                'direccion' => 'Av. Centenario s/n',
                 'telefono' => '062-311500',
                 'email' => 'hospital.llata@minsa.gob.pe',
                 'tipo' => 'Hospital',
@@ -136,7 +136,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'H1006',
                 'nombre' => 'Hospital de Tingo María (Rupa-Rupa)',
-                'direccion' => 'Jr. Fdo. Barreto 123, Rupa-Rupa',
+                'direccion' => 'Jr. Fdo. Barreto 123',
                 'telefono' => '062-331200',
                 'email' => 'hospital.tingomaria@minsa.gob.pe',
                 'tipo' => 'Hospital',
@@ -156,7 +156,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'CS1007A',
                 'nombre' => 'Centro de Salud Huacrachuco',
-                'direccion' => 'Plaza Principal, Huacrachuco',
+                'direccion' => 'Plaza Principal',
                 'telefono' => '062-341000',
                 'email' => 'cs.huacrachuco@minsa.gob.pe',
                 'tipo' => 'Centro de Salud',
@@ -176,7 +176,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'CS1008A',
                 'nombre' => 'Centro de Salud Panao',
-                'direccion' => 'Av. Central s/n, Panao',
+                'direccion' => 'Av. Central s/n',
                 'telefono' => '062-351100',
                 'email' => 'cs.panao@minsa.gob.pe',
                 'tipo' => 'Centro de Salud',
@@ -196,7 +196,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'PS1009',
                 'nombre' => 'Puesto de Salud Puerto Inca',
-                'direccion' => 'Av. Los Pescadores, Puerto Inca',
+                'direccion' => 'Av. Los Pescadores',
                 'telefono' => '062-361500',
                 'email' => 'ps.puertoinca@minsa.gob.pe',
                 'tipo' => 'Puesto de Salud',
@@ -216,7 +216,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'CS1010A',
                 'nombre' => 'Centro de Salud Jesús',
-                'direccion' => 'Plaza de Armas, Jesús',
+                'direccion' => 'Plaza de Armas',
                 'telefono' => '062-371200',
                 'email' => 'cs.jesus@minsa.gob.pe',
                 'tipo' => 'Centro de Salud',
@@ -236,7 +236,7 @@ class CentrosSaludSeeder extends Seeder
             [
                 'codigo' => 'PS1011',
                 'nombre' => 'Puesto de Salud Chavinillo',
-                'direccion' => 'Centro poblado, Chavinillo',
+                'direccion' => 'Centro poblado',
                 'telefono' => '062-381000',
                 'email' => 'ps.chavinillo@minsa.gob.pe',
                 'tipo' => 'Puesto de Salud',

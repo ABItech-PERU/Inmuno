@@ -83,7 +83,7 @@ $isCreated = $stage === 'created';
         .cta-button {
             display: inline-block;
             background-color: #06b6d4;
-            color: white;
+            color: !important white;
             padding: 12px 24px;
             text-decoration: none;
             border-radius: 6px;

@@ -13,6 +13,7 @@ class Recordatorio extends Model
         'user_id',
         'dependiente_id',
         'vacuna_id',
+    'dosis_vacuna_id',
         'cita_id',
         'tipo',
         'titulo',
@@ -50,6 +51,11 @@ class Recordatorio extends Model
     public function dependiente()
     {
         return $this->belongsTo(Dependiente::class);
+    }
+
+    public function dosisVacuna()
+    {
+        return $this->belongsTo(\App\Models\DosisVacuna::class, 'dosis_vacuna_id');
     }
 
     // Scopes

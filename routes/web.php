@@ -2,6 +2,7 @@
 
 use App\Actions\Fortify\CompletarRegistro;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\Paciente\CentroSaludController as CentroSaludControllerPaciente;
 use App\Http\Controllers\Paciente\DependientesController;
 use App\Http\Controllers\Paciente\RecordatoriosController;
 use App\Http\Controllers\Paciente\EsquemaVacunacionController;
@@ -27,6 +28,21 @@ Route::middleware('auth')->controller(CompletarRegistro::class)->group(function 
     Route::get('/completar-registro', 'create')->name('completar.registro');
     Route::post('/completar-registro', 'store');
 });
+
+// Centro de Salud público
+Route::get('/centros-de-salud', [CentroSaludControllerPaciente::class, 'index'])
+    ->name('centros-de-salud.index');
+Route::get('/api/centros-de-salud/list', [CentroSaludControllerPaciente::class, 'list'])
+    ->name('centros-de-salud.list');
+
+// Endpoints públicos para catálogos y búsqueda
+Route::get('/api/departamentos', [CentroSaludControllerPaciente::class, 'getDepartamentos'])
+    ->name('centros-de-salud.departamentos');
+Route::get('/api/provincias/{departamento}', [CentroSaludControllerPaciente::class, 'getProvinciasPublic'])
+    ->name('centros-de-salud.provincias');
+Route::get('/api/distritos/{provincia}', [CentroSaludControllerPaciente::class, 'getDistritosPublic'])
+    ->name('centros-de-salud.distritos');
+// NOTE: use `/api/centros-de-salud/list` with query params for search (search, departamento, provincia, distrito)
 
 Route::middleware([
     'auth:sanctum',
