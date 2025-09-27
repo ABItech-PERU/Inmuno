@@ -101,3 +101,8 @@ tail -f storage/logs/laravel.log
 **✅ Sistema completamente funcional y automatizado**  
 **📧 Sin intervención manual requerida**  
 **🚀 Listo para producción**
+
+
+/usr/bin/php8.4 /home/uat-inmunoalerta/htdocs/inmunoalerta.abitech.dev/artisan queue:work --queue=emails --sleep=3 --tries=3 --timeout=50 >> /home/uat-inmunoalerta/logs/worker.log 2>&1
+
+/usr/bin/php8.4 /home/uat-inmunoalerta/htdocs/inmunoalerta.abitech.dev/artisan schedule:run >> /home/uat-inmunoalerta/logs/scheduler.log 2>&1

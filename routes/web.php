@@ -6,6 +6,7 @@ use App\Http\Controllers\Paciente\CentroSaludController as CentroSaludController
 use App\Http\Controllers\Paciente\DependientesController;
 use App\Http\Controllers\Paciente\RecordatoriosController;
 use App\Http\Controllers\Paciente\EsquemaVacunacionController;
+use App\Http\Controllers\TodoSobreVacunas;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,6 +29,8 @@ Route::middleware('auth')->controller(CompletarRegistro::class)->group(function 
     Route::get('/completar-registro', 'create')->name('completar.registro');
     Route::post('/completar-registro', 'store');
 });
+
+Route::get('/sobre-vacunas', [TodoSobreVacunas::class, 'web'])->name('sobre-vacunas');
 
 // Centro de Salud público
 Route::get('/centros-de-salud', [CentroSaludControllerPaciente::class, 'index'])
@@ -114,5 +117,7 @@ Route::middleware([
             ->name('esquema-vacunacion.marcar-aplicada');
         Route::get('/api/centros-salud', [EsquemaVacunacionController::class, 'getCentrosSalud'])
             ->name('api.centros-salud');
+
+        Route::get('/sobre-vacunas', [TodoSobreVacunas::class, 'admin'])->name('paciente.sobre-vacunas');
     });
 });
