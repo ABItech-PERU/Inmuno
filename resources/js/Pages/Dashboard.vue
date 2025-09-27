@@ -49,7 +49,7 @@ const quickActions = computed(() => {
                 icon: BeakerIcon,
                 color: 'bg-gradient-to-r from-teal-400 to-cyan-400',
                 textColor: 'text-teal-700',
-                route: 'vaccines.index'
+                route: '/paciente/sobre-vacunas'
             },
             {
                 title: 'Gestionar dependientes',
