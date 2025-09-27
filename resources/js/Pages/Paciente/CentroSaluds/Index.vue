@@ -98,6 +98,16 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+// Fix Leaflet default icon paths when bundling with Vite/webpack
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 // pequeño debounce local para evitar dependencia extra
 function debounce(fn, wait = 300) {
