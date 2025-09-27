@@ -248,6 +248,7 @@ class RecordatoriosController extends Controller
 
         $validated = $request->validate([
             'dependiente_id' => 'nullable|exists:dependientes,id',
+            'dosis_vacuna_id' => 'nullable|exists:dosis_vacunas,id',
             'vacuna_id' => 'nullable|exists:vacunas,id',
             'tipo' => ['required', 'in:vacuna_proxima,cita_programada,refuerzo_pendiente,recordatorio_personal'],
             'titulo' => 'required|string|max:255',
@@ -266,6 +267,7 @@ class RecordatoriosController extends Controller
         $recordatorio = Recordatorio::create([
             'user_id' => $user->id,
             'dependiente_id' => $validated['dependiente_id'],
+            'dosis_vacuna_id' => $validated['dosis_vacuna_id'] ?? null,
             'vacuna_id' => $validated['vacuna_id'],
             'tipo' => $validated['tipo'],
             'titulo' => $validated['titulo'],
