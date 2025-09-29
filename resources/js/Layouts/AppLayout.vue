@@ -77,9 +77,6 @@ const logout = () => {
                                     <NavLink href="/paciente/recordatorios" :active="$page.url.startsWith('/paciente/recordatorios')">
                                         Recordatorios
                                     </NavLink>
-                                    <NavLink href="/mi-carnet" :active="$page.url.startsWith('/mi-carnet')">
-                                        Mi Carnet
-                                    </NavLink>
                                 </template>
                             </div>
                         </div>
@@ -255,9 +252,6 @@ const logout = () => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink href="/paciente/recordatorios" :active="$page.url.startsWith('/paciente/recordatorios')">
                                 Recordatorios
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink href="/mi-carnet" :active="$page.url.startsWith('/mi-carnet')">
-                                Mi Carnet
                             </ResponsiveNavLink>
                         </template>
                     </div>

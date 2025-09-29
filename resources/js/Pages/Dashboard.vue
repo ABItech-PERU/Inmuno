@@ -187,14 +187,16 @@ const quickActions = computed(() => {
     return actions;
 });
 
+// additionalInfo: incluir enlace al Carné de Vacunación del MINSA
 const additionalInfo = computed(() => [
     {
-        title: 'Carné de Vacunación General',
-        subtitle: 'Descarga tu certificado de vacunación completo',
+        title: 'Carné de Vacunación',
+        subtitle: 'Verifica tu carné en la plataforma oficial del MINSA',
         icon: IdentificationIcon,
         color: 'bg-gradient-to-r from-teal-400 to-cyan-400',
         textColor: 'text-teal-700',
-        route: 'vaccination-card.download'
+        url: 'https://carnetvacunacion.minsa.gob.pe',
+        external: true
     }
 ]);
 </script>
@@ -370,32 +372,26 @@ const additionalInfo = computed(() => [
                     <div class="p-4 sm:p-6">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Quick Info Section -->
+                            <!-- Se removió la tarjeta 'Carné de Vacunación General' según solicitud -->
                             <div class="space-y-4">
-                                <div v-for="info in additionalInfo" :key="info.title"
-                                    class="group cursor-pointer transition-all duration-200 hover:bg-gray-50 rounded-lg p-3 -m-3">
-                                    <div class="flex items-center space-x-4">
-                                        <div
-                                            :class="[info.color, 'w-10 h-10 rounded-lg flex items-center justify-center shadow-sm']">
-                                            <component :is="info.icon" class="w-5 h-5 text-white" />
+                                <a v-for="info in additionalInfo" :key="info.title" :href="info.url"
+                                    class="group block p-3 -m-3 rounded-lg transition-all" target="_blank" rel="noopener noreferrer">
+                                    <div
+                                        class="flex items-center space-x-4 bg-white border border-gray-100 hover:shadow-md p-3 rounded-lg">
+                                        <div :class="[info.color, 'w-12 h-12 rounded-lg flex items-center justify-center shadow-sm']">
+                                            <component :is="info.icon" class="w-6 h-6 text-white" />
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h4
-                                                :class="[info.textColor, 'font-medium group-hover:text-gray-900 transition-colors']">
-                                                {{ info.title }}
-                                            </h4>
-                                            <p class="text-gray-500 text-sm mt-1">
-                                                {{ info.subtitle }}
-                                            </p>
+                                            <h4 :class="[info.textColor, 'text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors']">{{ info.title }}</h4>
+                                            <p class="text-gray-500 text-sm">{{ info.subtitle }}</p>
                                         </div>
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
+                                        <div class="flex-shrink-0 text-teal-600">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7M21 3L10 14" />
                                             </svg>
                                         </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
 
                             <!-- Tips Section -->
