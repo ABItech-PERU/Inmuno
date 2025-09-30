@@ -144,17 +144,29 @@ class EsquemaVacunacionController extends Controller
         // Obtener histórico completo de aplicaciones
         $aplicacionesHistorico = [];
         if ($esUsuario) {
+            // Excluir aplicaciones que fueron registradas para dependientes (tienen dependiente_id)
             $aplicacionesHistorico = AplicacionVacuna::where('user_id', $persona->id)
+                ->whereNull('dependiente_id')
                 ->with(['vacuna', 'centroSalud'])
                 ->orderBy('fecha_aplicacion', 'desc')
                 ->get();
         } else {
             // Para dependientes, usar el ID del usuario registrado o del tutor
-            $pacienteId = $persona->dependiente_user_id ?? $user->id;
-            $aplicacionesHistorico = AplicacionVacuna::where('user_id', $pacienteId)
-                ->with(['vacuna', 'centroSalud'])
-                ->orderBy('fecha_aplicacion', 'desc')
-                ->get();
+            $pacienteId = $persona->dependiente_user_id ?? null;
+            $query = AplicacionVacuna::with(['vacuna', 'centroSalud'])->orderBy('fecha_aplicacion', 'desc');
+
+            if ($pacienteId) {
+                // Incluir aplicaciones del usuario vinculado y las que tengan dependiente_id
+                $query->where(function($q) use ($pacienteId, $persona) {
+                    $q->where('user_id', $pacienteId)
+                      ->orWhere('dependiente_id', $persona->id);
+                });
+            } else {
+                // No hay usuario vinculado: buscar por dependiente_id
+                $query->where('dependiente_id', $persona->id);
+            }
+
+            $aplicacionesHistorico = $query->get();
         }
 
         // Calcular estadísticas generales
@@ -230,27 +242,44 @@ class EsquemaVacunacionController extends Controller
         }
 
         // Verificar que no exista ya una aplicación para esta dosis
-        $existeAplicacion = AplicacionVacuna::where('user_id', $pacienteId)
+        $existeQuery = AplicacionVacuna::where('user_id', $pacienteId)
             ->where('vacuna_id', $dosisVacuna->vacuna_id)
-            ->where('numero_dosis', $dosisVacuna->numero_dosis)
-            ->exists();
+            ->where('numero_dosis', $dosisVacuna->numero_dosis);
+
+        // Si estamos marcando para el usuario principal, ignorar aplicaciones que pertenecen a dependientes
+        if ($request->persona_tipo === 'usuario') {
+            $existeQuery->whereNull('dependiente_id');
+        }
+
+        $existeAplicacion = $existeQuery->exists();
 
         if ($existeAplicacion) {
             return back()->with('error', 'Esta dosis ya está marcada como aplicada.');
         }
 
         // Crear la aplicación
-        AplicacionVacuna::create([
+        // Preparar datos básicos
+        $dataToCreate = [
             'user_id' => $pacienteId,
             'vacuna_id' => $dosisVacuna->vacuna_id,
-            'medico_id' => null, // Marcado por el paciente
+            'dosis_vacuna_id' => $dosisVacuna->id,
+            'medico_id' => null,
             'centro_salud_id' => $request->centro_salud_id,
             'fecha_aplicacion' => $request->fecha_aplicacion,
             'numero_dosis' => $dosisVacuna->numero_dosis,
             'lote_vacuna' => null,
+            'fecha_vencimiento' => null,
             'observaciones' => $request->observaciones,
-            'reaccion_adversa' => null
-        ]);
+            'reaccion_adversa' => null,
+            'proxima_dosis' => null
+        ];
+
+        // Si se marcó desde vista de dependiente, guardar su id también
+        if ($request->persona_tipo === 'dependiente' && $request->persona_id) {
+            $dataToCreate['dependiente_id'] = $request->persona_id;
+        }
+
+        AplicacionVacuna::create($dataToCreate);
 
         return back()->with('message', 'Dosis marcada como aplicada exitosamente.');
     }
@@ -356,12 +385,17 @@ class EsquemaVacunacionController extends Controller
                     }
                 }
 
+                // Calcular fecha estimada y origen
+                $calc = $this->calcularDiasParaAplicacion($persona, $dosis, $esDependiente);
+
                 return [
                     'dosis' => $dosis,
                     'aplicada' => $aplicacion !== null,
                     'aplicacion' => $aplicacion,
                     'puede_aplicar' => $this->puedeAplicarDosis($persona, $dosis, $esDependiente),
-                    'dias_para_aplicacion' => $this->calcularDiasParaAplicacion($persona, $dosis, $esDependiente),
+                    'dias_para_aplicacion' => $calc['dias'],
+                    'fecha_estimada_aplicacion' => $calc['fecha'],
+                    'fuente_calculo' => $calc['fuente'],
                     // Marcar si existe un recordatorio pendiente/programado para esta vacuna (solo la dosis relevante)
                     'tiene_recordatorio' => $tieneRecordatorio,
                     'recordatorio' => $primerRecordatorio,
@@ -392,28 +426,41 @@ class EsquemaVacunacionController extends Controller
     private function buscarAplicacion($persona, $dosis, $esDependiente)
     {
         if ($esDependiente) {
-            // Para dependientes, buscar por user_id si está registrado, o por documento
+            // Si el dependiente tiene user vinculado, buscar por ese user_id
             if ($persona->dependiente_user_id) {
-                return AplicacionVacuna::where('user_id', $persona->dependiente_user_id)
+                return AplicacionVacuna::where(function($q) use ($persona) {
+                        $q->where('user_id', $persona->dependiente_user_id)
+                          ->orWhere('dependiente_id', $persona->id);
+                    })
                     ->where('vacuna_id', $dosis->vacuna_id)
                     ->where('numero_dosis', $dosis->numero_dosis)
                     ->first();
-            } else {
-                // Buscar por número de documento en la tabla de aplicaciones
-                return AplicacionVacuna::whereHas('paciente', function($query) use ($persona) {
+            }
+
+            // Si no tiene user vinculado, buscar por dependiente_id en la tabla de aplicaciones
+            $byDependiente = AplicacionVacuna::where('dependiente_id', $persona->id)
+                ->where('vacuna_id', $dosis->vacuna_id)
+                ->where('numero_dosis', $dosis->numero_dosis)
+                ->first();
+
+            if ($byDependiente) return $byDependiente;
+
+            // Fallback: buscar por número de documento relacionado con paciente (caso legacy)
+            return AplicacionVacuna::whereHas('paciente', function($query) use ($persona) {
                     $query->where('numero_documento', $persona->numero_documento);
                 })
                 ->where('vacuna_id', $dosis->vacuna_id)
                 ->where('numero_dosis', $dosis->numero_dosis)
                 ->first();
-            }
-        } else {
-            // Para el usuario principal
-            return AplicacionVacuna::where('user_id', $persona->id)
-                ->where('vacuna_id', $dosis->vacuna_id)
-                ->where('numero_dosis', $dosis->numero_dosis)
-                ->first();
         }
+
+        // Para el usuario principal
+        // Cuando se consulta el usuario principal, ignorar aplicaciones que pertenezcan a dependientes
+        return AplicacionVacuna::where('user_id', $persona->id)
+            ->whereNull('dependiente_id')
+            ->where('vacuna_id', $dosis->vacuna_id)
+            ->where('numero_dosis', $dosis->numero_dosis)
+            ->first();
     }
 
     /**
@@ -458,14 +505,80 @@ class EsquemaVacunacionController extends Controller
      */
     private function calcularDiasParaAplicacion($persona, $dosis, $esDependiente)
     {
+        // Valor por defecto
+        $result = [
+            'dias' => 0,
+            'fecha' => null,
+            'fuente' => 'unknown'
+        ];
+
+        // Si la dosis no tiene edad mínima definida, se puede aplicar en cualquier momento
         if ($dosis->edad_aplicacion === null) {
-            return 0; // Se puede aplicar en cualquier momento
+            $result['dias'] = 0;
+            $result['fecha'] = now()->toDateString();
+            $result['fuente'] = 'inmediato';
+            return $result;
         }
 
-        $fechaNacimiento = $esDependiente ? $persona->fecha_nacimiento : $persona->fecha_nacimiento;
+        // Intentar calcular por intervalo relativo a aplicación previa si corresponde
+        try {
+            if ($dosis->numero_dosis > 1 && !is_null($dosis->dias_despues_anterior)) {
+                // Buscar la definición de la dosis anterior
+                $dosisAnterior = DosisVacuna::where('vacuna_id', $dosis->vacuna_id)
+                    ->where('numero_dosis', $dosis->numero_dosis - 1)
+                    ->first();
+
+                if ($dosisAnterior) {
+                    // Buscar la aplicación previa (si existe) para la persona según tipo
+                    $aplicacionPrev = $this->buscarAplicacion($persona, $dosisAnterior, $esDependiente);
+                    if ($aplicacionPrev && $aplicacionPrev->fecha_aplicacion) {
+                        $fechaPrev = Carbon::parse($aplicacionPrev->fecha_aplicacion);
+
+                        // Calcular la fecha objetivo original de la dosis anterior basada en edad_aplicacion
+                        $usarIntervaloDesdePrev = false;
+                        if (!is_null($dosisAnterior->edad_aplicacion) && $persona->fecha_nacimiento) {
+                            $fechaNacimiento = Carbon::parse($persona->fecha_nacimiento);
+                            $fechaObjetivoAnteriorPorEdad = $fechaNacimiento->copy()->addMonths($dosisAnterior->edad_aplicacion);
+
+                            // Usar intervalo sólo si la aplicación previa fue estrictamente posterior a su fecha objetivo
+                            if ($fechaPrev->greaterThan($fechaObjetivoAnteriorPorEdad)) {
+                                $usarIntervaloDesdePrev = true;
+                            }
+                        }
+
+                        if ($usarIntervaloDesdePrev) {
+                            $fechaObjetivo = $fechaPrev->copy()->addDays(intval($dosis->dias_despues_anterior));
+                            $result['fecha'] = $fechaObjetivo->toDateString();
+                            $result['dias'] = now()->diffInDays($fechaObjetivo, false);
+                            $result['fuente'] = 'intervalo_prev';
+                            return $result;
+                        }
+                        // Si la aplicación previa fue anterior o en fecha, no usar el intervalo
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error calculando fecha por dias_despues_anterior: ' . $e->getMessage());
+            // continuar con fallback
+        }
+
+        // Fallback: calcular por edad mínima (edad_aplicacion en meses)
+        $fechaNacimiento = $persona->fecha_nacimiento;
+        if (!$fechaNacimiento) {
+            // Si no hay fecha de nacimiento, no podemos estimar; devolver inmediato
+            $result['dias'] = 0;
+            $result['fecha'] = now()->toDateString();
+            $result['fuente'] = 'unknown';
+            return $result;
+        }
+
         $fechaAplicacion = Carbon::parse($fechaNacimiento)->addMonths($dosis->edad_aplicacion);
         $diasRestantes = now()->diffInDays($fechaAplicacion, false);
 
-        return $diasRestantes;
+        $result['dias'] = $diasRestantes;
+        $result['fecha'] = $fechaAplicacion->toDateString();
+        $result['fuente'] = 'edad';
+
+        return $result;
     }
 }

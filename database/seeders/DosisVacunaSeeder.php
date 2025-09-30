@@ -342,6 +342,48 @@ class DosisVacunaSeeder extends Seeder
         ];
 
         // Crear las dosis de vacunas
+        // Calcular valores por defecto para `dias_despues_anterior` cuando no se provea explícitamente.
+        // Si la dosis actual y la anterior tienen `edad_aplicacion`, estimamos el intervalo en días
+        // usando la diferencia en meses * 30.
+        $indexByVacuna = [];
+        foreach ($dosisVacunas as $i => $d) {
+            $vacName = $d['vacuna'];
+            $numero = $d['numero_dosis'];
+            if (!isset($indexByVacuna[$vacName])) $indexByVacuna[$vacName] = [];
+            $indexByVacuna[$vacName][$numero] = $i;
+        }
+
+        foreach ($dosisVacunas as $dosisKey => &$dosisData) {
+            // Si ya viene definido, respetarlo
+            if (array_key_exists('dias_despues_anterior', $dosisData)) {
+                continue;
+            }
+
+            if ($dosisData['numero_dosis'] > 1) {
+                $vacName = $dosisData['vacuna'];
+                $prevNum = $dosisData['numero_dosis'] - 1;
+                if (isset($indexByVacuna[$vacName][$prevNum])) {
+                    $prevEntry = $dosisVacunas[$indexByVacuna[$vacName][$prevNum]];
+                    if (isset($dosisData['edad_aplicacion']) && isset($prevEntry['edad_aplicacion']) && $dosisData['edad_aplicacion'] !== null && $prevEntry['edad_aplicacion'] !== null) {
+                        $mesesDiff = intval($dosisData['edad_aplicacion']) - intval($prevEntry['edad_aplicacion']);
+                        // Si la diferencia es mayor a 0, estimamos días = mesesDiff * 30
+                        if ($mesesDiff > 0) {
+                            $dosisData['dias_despues_anterior'] = $mesesDiff * 30;
+                        } else {
+                            $dosisData['dias_despues_anterior'] = null;
+                        }
+                    } else {
+                        $dosisData['dias_despues_anterior'] = null;
+                    }
+                } else {
+                    $dosisData['dias_despues_anterior'] = null;
+                }
+            } else {
+                $dosisData['dias_despues_anterior'] = null;
+            }
+        }
+        unset($dosisData); // limpiar referencia
+
         foreach ($dosisVacunas as $dosisData) {
             $esquema = $esquemas->get($dosisData['esquema']);
             $vacuna = $vacunas->get($dosisData['vacuna']);
@@ -353,6 +395,7 @@ class DosisVacunaSeeder extends Seeder
                     'numero_dosis' => $dosisData['numero_dosis'],
                 ], [
                     'edad_aplicacion' => $dosisData['edad_aplicacion'],
+                    'dias_despues_anterior' => $dosisData['dias_despues_anterior'] ?? null,
                     'observaciones' => $dosisData['observaciones'],
                     'activo' => true
                 ]);
