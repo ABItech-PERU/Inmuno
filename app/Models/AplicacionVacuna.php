@@ -11,6 +11,7 @@ class AplicacionVacuna extends Model
 
     protected $fillable = [
         'user_id',
+    'dependiente_id',
         'vacuna_id',
         'dosis_vacuna_id',
         'medico_id',
@@ -35,6 +36,11 @@ class AplicacionVacuna extends Model
     public function paciente()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function dependiente()
+    {
+        return $this->belongsTo(Dependiente::class, 'dependiente_id');
     }
 
     public function medico()

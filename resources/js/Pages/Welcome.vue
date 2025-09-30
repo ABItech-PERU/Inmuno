@@ -28,17 +28,21 @@ const user = page.props.auth?.user
 
             <!-- Contenido principal -->
             <main class="flex flex-col items-center justify-center text-center px-6 -mt-8 relative z-20">
-                <button
+                <a
+                    href="https://carnetvacunacion.minsa.gob.pe"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Validación QR - abre en nueva pestaña"
                     class="flex items-center justify-center gap-3 w-56 px-5 py-4 mb-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105">
                     <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                         <path
                             d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM19 13h2v2h-2zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM15 19h2v2h-2zM17 15h2v2h-2zM19 17h2v2h-2zM17 19h2v2h-2z" />
                     </svg>
-                    <span class="text-sm font-bold">LECTOR QR</span>
-                </button>
+                    <span class="text-sm font-bold">VALIDACIÓN QR</span>
+                </a>
 
                 <p class="text-sm text-gray-600 mb-8 font-medium">
-                    Verifica la validez de<br>un código QR
+                    Verifica la validez de<br>tu carné (MINSA)
                 </p>
 
                 <div v-if="!user" class="flex gap-3 w-full max-w-xs mb-4">
