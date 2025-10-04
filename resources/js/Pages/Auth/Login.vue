@@ -44,14 +44,14 @@ const submit = () => {
                     <InputLabel for="email" value="Correo electrónico" />
                     <TextInput id="email" v-model="form.email" type="email" class="mt-1 block w-full" required autofocus
                         autocomplete="username" />
-                    <InputError class="mt-2" :message="form.errors.email" />
+                    <InputError :message="form.errors.email" />
                 </div>
 
                 <div>
                     <InputLabel for="password" value="Contraseña" />
                     <TextInput id="password" v-model="form.password" type="password" class="mt-1 block w-full" required
                         autocomplete="current-password" />
-                    <InputError class="mt-2" :message="form.errors.password" />
+                    <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="text-right">
