@@ -31,4 +31,5 @@ jobs:
             php artisan optimize:clear
             php artisan optimize
             npm run build
+            php artisan queue:flush
 
