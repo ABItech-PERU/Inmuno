@@ -155,9 +155,8 @@ const getEdadUsuario = (recordatorio) => {
 const getDestinatarioInfo = (recordatorio) => {
     const edad = getEdadDestinatario(recordatorio);
     if (recordatorio.dependiente) {
-        const depName = `${recordatorio.dependiente.nombre} ${
-            recordatorio.dependiente.apellidos || ""
-        }`.trim();
+        // Usar solo el nombre ya que parece incluir apellidos completos
+        const depName = recordatorio.dependiente.nombre || "Sin nombre";
         return edad
             ? `Dependiente: ${depName} (${edad})`
             : `Dependiente: ${depName}`;
