@@ -36,7 +36,7 @@
         @inertiaHead
 
         <!-- reCAPTCHA Script -->
-        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
     </head>
     <body class="font-sans antialiased">
         @inertia
