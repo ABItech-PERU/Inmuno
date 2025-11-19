@@ -53,9 +53,7 @@ Route::middleware([
     'verified',
     'registro',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Rutas de administración - solo para administradores
     Route::middleware(['role:ADMINISTRADOR'])->prefix('admin')->name('admin.')->group(function () {
@@ -90,6 +88,15 @@ Route::middleware([
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
         Route::patch('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
+
+        // Gestión de Recordatorios
+        Route::resource('recordatorios', App\Http\Controllers\Admin\RecordatorioController::class)->except(['create', 'store']);
+        Route::patch('recordatorios/{recordatorio}/marcar-enviado', [App\Http\Controllers\Admin\RecordatorioController::class, 'marcarEnviado'])
+            ->name('recordatorios.marcar-enviado');
+
+        // Módulo de Estadísticas y Reportes
+        Route::get('/estadisticas', [App\Http\Controllers\Admin\EstadisticasController::class, 'index'])
+            ->name('estadisticas.index');
     });
 
     // Rutas para pacientes - solo para usuarios con rol PACIENTE
