@@ -57,6 +57,12 @@ class AuthenticateUser
      */
     private function authenticateUser(Request $request): ?User
     {
+        if (empty($request->recaptcha)) {
+            throw ValidationException::withMessages([
+                'recaptcha' => 'Completa el captcha para continuar.'
+            ]);
+        }
+
         $user = User::where('email', $request->email)->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
