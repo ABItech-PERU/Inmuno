@@ -21,6 +21,9 @@ const form = useForm({
 });
 
 const submit = () => {
+    if(esCheckRecaptcha()) {
+        return;
+    }
     form.transform((data) => ({
         ...data,
         remember: form.remember ? "on" : "",
@@ -64,6 +67,21 @@ onMounted(() => {
     };
     checkRecaptcha();
 });
+
+const esCheckRecaptcha = () => {
+    if (!form.recaptcha) {
+        form.errors.recaptcha = "Completa el captcha para continuar.";
+        return true;
+    }
+    return false;
+};
+
+const continuarConGoogle = () => {
+    if(esCheckRecaptcha()) {
+        return;
+    }
+    window.location.href = route("google");
+};
 </script>
 
 <template>
@@ -158,8 +176,9 @@ onMounted(() => {
                 <!-- Continuar con Google -->
                 <div>
                     <div class="flex items-center justify-center mt-10">
-                        <a
-                            :href="route('google')"
+                        <button
+                            type="button"
+                            @click="continuarConGoogle"
                             class="flex items-center justify-center gap-3 w-full max-w-xs px-5 py-2 bg-white border border-gray-300 rounded-full shadow-md hover:shadow-lg transition duration-200 ease-in-out"
                         >
                             <!-- Ícono de Google -->
@@ -171,7 +190,7 @@ onMounted(() => {
                             <span class="text-gray-700 font-medium"
                                 >Continuar con Google</span
                             >
-                        </a>
+                        </button>
                     </div>
                 </div>
             </form>
