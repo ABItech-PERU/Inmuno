@@ -40,7 +40,7 @@ class GoogleController extends Controller
             }
         } catch (\Exception $e) {
             return redirect('login')
-                ->withErrors(['google' => $e->getMessage()]);
+                ->with('error', $e->getMessage());
         }
     }
 
