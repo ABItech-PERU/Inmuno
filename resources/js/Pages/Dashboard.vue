@@ -159,7 +159,7 @@ const quickActions = computed(() => {
                 icon: ChartBarIcon,
                 color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
                 textColor: 'text-cyan-700',
-                route: '/admin/reports'
+                route: '/admin/estadisticas'
             },
             {
                 title: 'Recordatorios',
