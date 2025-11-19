@@ -63,6 +63,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
+        'fecha_nacimiento_formatted',
     ];
 
     /**
@@ -76,7 +77,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'fecha_nacimiento' => 'date',
+            'estado' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the formatted birth date for form inputs.
+     */
+    protected function getFechaNacimientoFormattedAttribute()
+    {
+        return $this->fecha_nacimiento ? $this->fecha_nacimiento->format('Y-m-d') : null;
     }
 
     // Relaciones del sistema de vacunación

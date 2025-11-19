@@ -63,6 +63,9 @@ const logout = () => {
                                     <NavLink :href="'/admin/users'" :active="$page.url.startsWith('/admin/users')">
                                         Usuarios
                                     </NavLink>
+                                    <NavLink :href="'/admin/estadisticas'" :active="$page.url.startsWith('/admin/estadisticas')">
+                                        Estadísticas
+                                    </NavLink>
                                 </template>
 
 
@@ -232,6 +235,9 @@ const logout = () => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="'/admin/users'" :active="$page.url.startsWith('/admin/users')">
                                 Usuarios
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="'/admin/estadisticas'" :active="$page.url.startsWith('/admin/estadisticas')">
+                                Estadísticas
                             </ResponsiveNavLink>
                         </template>
 
