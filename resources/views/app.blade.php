@@ -34,6 +34,9 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
+
+        <!-- reCAPTCHA Script -->
+        <script src="https://www.google.com/recaptcha/api.js"></script>
     </head>
     <body class="font-sans antialiased">
         @inertia
