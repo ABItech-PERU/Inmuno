@@ -85,6 +85,11 @@ Route::middleware([
             ->name('api.provincias');
         Route::get('api/distritos/{provincia}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getDistritos'])
             ->name('api.distritos');
+
+        // Gestión de Usuarios
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+        Route::patch('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])
+            ->name('users.toggle-status');
     });
 
     // Rutas para pacientes - solo para usuarios con rol PACIENTE
