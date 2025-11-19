@@ -37,7 +37,8 @@
 
         <!-- reCAPTCHA Script -->
 
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lc2MhEsAAAAAJ0nGa7_3sP11S_anymGMZ7J6fYK"></script>
+
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LcCmxEsAAAAAHXMfr10uUaDHxp4UGuRgpK88qSq"></script>
   <!-- Your code -->
 
     </head>
