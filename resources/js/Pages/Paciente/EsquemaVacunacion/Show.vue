@@ -853,114 +853,76 @@ const validarFechaHoraAgendar = () => {
     return true
 }
 
-const enviarAgendado = async () => {
+const enviarAgendado = () => {
     processingAgendar.value = true
-    try {
-        // Intentar crear una cita en backend (ruta sugerida). Si no existe, fallback a crear recordatorio.
-        const payload = {
-            dosis_id: formAgendar.value.dosis_id,
-            fecha: formAgendar.value.fecha,
-            hora: formAgendar.value.hora,
-            centro_salud_id: formAgendar.value.centro_salud_id,
-            observaciones: formAgendar.value.observaciones,
-            persona_tipo: props.persona.es_usuario ? 'usuario' : 'dependiente',
-            persona_id: props.persona.es_usuario ? null : props.persona.datos.id,
-        }
 
-        // En esta implementación creamos directamente un recordatorio asociado a la cita
-    const datosRecordatorio = {
-            titulo: formAgendar.value.titulo || `Cita - ${agendarSeleccionada.value.vacuna.nombre}`,
-            mensaje: formAgendar.value.observaciones || null,
-            fecha_recordatorio: formAgendar.value.fecha,
-            hora_recordatorio: formAgendar.value.hora || null,
-            tipo: formAgendar.value.tipo || 'vacuna_proxima',
-            vacuna_id: agendarSeleccionada.value.vacuna.id,
-            // Relacionar con la dosis exacta (clave nueva que guardamos en backend)
-            dosis_vacuna_id: formAgendar.value.dosis_id || null,
-            // Opcionales: relacionar persona (usuario o dependiente)
-            dependiente_id: formAgendar.value.dependiente_id ?? (payload.persona_tipo === 'dependiente' ? payload.persona_id : null),
-            // Mantener claves antiguas por compatibilidad (si se usan en frontend)
-            persona_tipo: formAgendar.value.persona_tipo ?? payload.persona_tipo,
-            persona_id: formAgendar.value.persona_id ?? payload.persona_id,
-            // Antiqua referencia por compatibilidad
-            dosis_id: formAgendar.value.dosis_id
-        }
-
-        // Validar fecha/hora antes de enviar
-        const validFH = validateDateTime(formAgendar.value.fecha, formAgendar.value.hora)
-        if (!validFH.valid) {
-            errorHoraAgendar.value = validFH.error || 'Fecha u hora inválida'
-            processingAgendar.value = false
-            return
-        }
-
-        // Usar fetch para evitar que Inertia siga redirecciones del servidor
-        try {
-            // Intentar obtener token CSRF desde <meta name="csrf-token"> o desde cookie XSRF-TOKEN
-            const tokenMeta = document.querySelector('meta[name="csrf-token"]')
-            let csrf = tokenMeta ? tokenMeta.getAttribute('content') : ''
-            // Si no hay meta, buscar cookie XSRF-TOKEN (Laravel sets it by default)
-            if (!csrf) {
-                const match = document.cookie.match(new RegExp('(^|; )XSRF-TOKEN=([^;]+)'))
-                if (match) {
-                    // Cookie está urlencoded
-                    csrf = decodeURIComponent(match[2])
-                }
-            }
-
-            const headers = {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-            if (csrf) {
-                // Laravel acepta X-XSRF-TOKEN a partir de la cookie
-                headers['X-XSRF-TOKEN'] = csrf
-            }
-
-            const resp = await fetch(route('paciente.recordatorios.store'), {
-                method: 'POST',
-                credentials: 'same-origin', // incluir cookies para que Laravel valide la sesión/CSRF
-                headers,
-                body: JSON.stringify(datosRecordatorio)
-            })
-
-            if (resp.ok) {
-                // Intentar leer json, pero no es estrictamente necesario
-                // const data = await resp.json()
-                try {
-                    const id = String(formAgendar.value.dosis_id || (agendarSeleccionada.value && (agendarSeleccionada.value.id || agendarSeleccionada.value.numero_dosis)))
-                    if (id) agendadosLocales.value.add(id)
-                } catch (e) {
-                    // ignore
-                }
-                cerrarModalAgendar()
-                toast.value = { show: true, message: 'Agendado ✓' }
-                setTimeout(() => { toast.value.show = false }, 3000)
-            } else {
-                let errMsg = 'Error al agendar'
-                try {
-                    const err = await resp.json()
-                    // intentar extraer mensaje legible
-                    if (err && err.message) errMsg = err.message
-                } catch (e) {
-                    // ignore
-                }
-                console.error('Error creando recordatorio:', resp.status, resp.statusText)
-                toast.value = { show: true, message: errMsg }
-                setTimeout(() => { toast.value.show = false }, 3000)
-            }
-        } catch (fetchErr) {
-            console.error('Error en fetch al crear recordatorio:', fetchErr)
-            toast.value = { show: true, message: 'Error al agendar' }
-            setTimeout(() => { toast.value.show = false }, 3000)
-        } finally {
-            processingAgendar.value = false
-        }
-    } catch (error) {
-        console.error('Error agendando cita:', error)
-    } finally {
-        processingAgendar.value = false
+    // Intentar crear una cita en backend (ruta sugerida). Si no existe, fallback a crear recordatorio.
+    const payload = {
+        dosis_id: formAgendar.value.dosis_id,
+        fecha: formAgendar.value.fecha,
+        hora: formAgendar.value.hora,
+        centro_salud_id: formAgendar.value.centro_salud_id,
+        observaciones: formAgendar.value.observaciones,
+        persona_tipo: props.persona.es_usuario ? 'usuario' : 'dependiente',
+        persona_id: props.persona.es_usuario ? null : props.persona.datos.id,
     }
+
+    // En esta implementación creamos directamente un recordatorio asociado a la cita
+    const datosRecordatorio = {
+        titulo: formAgendar.value.titulo || `Cita - ${agendarSeleccionada.value.vacuna.nombre}`,
+        mensaje: formAgendar.value.observaciones || null,
+        fecha_recordatorio: formAgendar.value.fecha,
+        hora_recordatorio: formAgendar.value.hora || null,
+        tipo: formAgendar.value.tipo || 'vacuna_proxima',
+        vacuna_id: agendarSeleccionada.value.vacuna.id,
+        // Relacionar con la dosis exacta (clave nueva que guardamos en backend)
+        dosis_vacuna_id: formAgendar.value.dosis_id || null,
+        // Opcionales: relacionar persona (usuario o dependiente)
+        dependiente_id: formAgendar.value.dependiente_id ?? (payload.persona_tipo === 'dependiente' ? payload.persona_id : null),
+        // Mantener claves antiguas por compatibilidad (si se usan en frontend)
+        persona_tipo: formAgendar.value.persona_tipo ?? payload.persona_tipo,
+        persona_id: formAgendar.value.persona_id ?? payload.persona_id,
+        // Antiqua referencia por compatibilidad
+        dosis_id: formAgendar.value.dosis_id
+    }
+
+    // Validar fecha/hora antes de enviar
+    const validFH = validateDateTime(formAgendar.value.fecha, formAgendar.value.hora)
+    if (!validFH.valid) {
+        errorHoraAgendar.value = validFH.error || 'Fecha u hora inválida'
+        processingAgendar.value = false
+        return
+    }
+
+    // Usar router.post de Inertia para manejar CSRF automáticamente
+    router.post(route('paciente.recordatorios.store'), datosRecordatorio, {
+        onSuccess: () => {
+            try {
+                const id = String(formAgendar.value.dosis_id || (agendarSeleccionada.value && (agendarSeleccionada.value.id || agendarSeleccionada.value.numero_dosis)))
+                if (id) agendadosLocales.value.add(id)
+            } catch (e) {
+                // ignore
+            }
+            cerrarModalAgendar()
+            toast.value = { show: true, message: 'Agendado ✓' }
+            setTimeout(() => { toast.value.show = false }, 3000)
+        },
+        onError: (errors) => {
+            console.error('Error creando recordatorio:', errors)
+            let errMsg = 'Error al agendar'
+            if (errors && typeof errors === 'object') {
+                // Si hay errores de validación, mostrar el primero
+                const firstError = Object.values(errors)[0]
+                if (Array.isArray(firstError)) errMsg = firstError[0]
+                else errMsg = firstError
+            }
+            toast.value = { show: true, message: errMsg }
+            setTimeout(() => { toast.value.show = false }, 3000)
+        },
+        onFinish: () => {
+            processingAgendar.value = false
+        }
+    })
 }
 
 const cerrarModal = () => {
