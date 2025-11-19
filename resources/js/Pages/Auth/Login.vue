@@ -51,13 +51,18 @@ const onExpired = () => {
 };
 
 onMounted(() => {
-    if (window.grecaptcha) {
-        recaptchaWidgetId = window.grecaptcha.render(recaptchaRef.value, {
-            sitekey: recaptchaSiteKey,
-            callback: onVerify,
-            "expired-callback": onExpired,
-        });
-    }
+    const checkRecaptcha = () => {
+        if (window.grecaptcha && window.grecaptcha.render) {
+            recaptchaWidgetId = window.grecaptcha.render(recaptchaRef.value, {
+                sitekey: recaptchaSiteKey,
+                callback: onVerify,
+                "expired-callback": onExpired,
+            });
+        } else {
+            setTimeout(checkRecaptcha, 100);
+        }
+    };
+    checkRecaptcha();
 });
 </script>
 
@@ -71,6 +76,12 @@ onMounted(() => {
             <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
                 {{ status }}
             </div>
+
+            <div v-if="$page.props.flash?.error" class="mb-4 text-red-600">
+                {{ $page.props.flash.error }}
+            </div>
+
+            <InputError :message="form.errors.google" class="mb-4" />
 
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
