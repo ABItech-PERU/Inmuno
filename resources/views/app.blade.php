@@ -9,6 +9,9 @@
         <!-- Theme Color -->
         <meta name="theme-color" content="#009688">
 
+        <!-- CSRF Token -->
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
         <!-- Keywords -->
         <meta name="keywords"
         content="Inmuno Alerta, Sistema de vacunación infantil, Recordatorio de vacunas, Esquema de inmunización MINSA, Control de vacunas niños, Alertas de vacunación, Registro de vacunas, Vacunación Perú, Seguimiento de vacunas, Notificaciones de inmunización">

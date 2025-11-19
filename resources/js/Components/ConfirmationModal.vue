@@ -20,6 +20,18 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    confirmText: {
+        type: String,
+        default: 'Eliminar',
+    },
+    processingText: {
+        type: String,
+        default: 'Eliminando...',
+    },
+    confirmButtonClass: {
+        type: String,
+        default: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+    },
 });
 
 const close = () => {
@@ -72,10 +84,10 @@ const confirm = () => {
                 type="button"
                 @click="confirm"
                 :disabled="processing"
-                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="`inline-flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${confirmButtonClass}`"
             >
-                <span v-if="processing">Eliminando...</span>
-                <span v-else>Eliminar</span>
+                <span v-if="processing">{{ processingText }}</span>
+                <span v-else>{{ confirmText }}</span>
             </button>
         </div>
     </Modal>

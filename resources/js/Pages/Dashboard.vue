@@ -14,19 +14,19 @@ import {
     ChartBarIcon
 } from '@heroicons/vue/24/outline';
 
-const page = usePage();
-const user = computed(() => page.props.auth.user);
+const props = defineProps({
+    stats: Object,
+});
 
-// Debug temporal - remover después
-console.log('Usuario:', user.value);
-console.log('Roles del usuario:', user.value?.roles);
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
 
 // Simulando datos del dashboard - esto vendría del backend
 const dashboardStats = computed(() => ({
-    totalVacunas: 156,
-    pacientesVacunados: 89,
-    citasPendientes: 12,
-    recordatoriosHoy: 5
+    totalVacunas: props.stats?.totalVacunas || 0,
+    pacientesVacunados: props.stats?.pacientesVacunados || 0,
+    citasPendientes: props.stats?.citasPendientes || 0,
+    recordatoriosHoy: props.stats?.recordatoriosHoy || 0
 }));
 
 const quickActions = computed(() => {
@@ -161,6 +161,14 @@ const quickActions = computed(() => {
                 textColor: 'text-cyan-700',
                 route: '/admin/reports'
             },
+            {
+                title: 'Recordatorios',
+                subtitle: 'Gestionar alertas y recordatorios',
+                icon: BellIcon,
+                color: 'bg-gradient-to-r from-purple-400 to-purple-600',
+                textColor: 'text-cyan-700',
+                route: '/admin/recordatorios'
+            },
         ];
     } else {
         // Fallback: si no se detecta ningún rol específico, mostrar acciones básicas
@@ -203,6 +211,15 @@ const additionalInfo = computed(() => [
 
 <template>
     <AppLayout title="Dashboard - Inmuno Alerta">
+        <!-- Mostrar loading si no hay usuario -->
+        <div v-if="!user" class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Cargando...</p>
+            </div>
+        </div>
+
+        <div v-else class="min-h-screen bg-gray-50">
         <div class="min-h-screen bg-gray-50">
             <!-- Header Section -->
             <div class="bg-white shadow-sm border-b border-gray-200">
@@ -213,7 +230,7 @@ const additionalInfo = computed(() => [
                                 Panel de control
                             </h1>
                             <p class="text-gray-600 text-sm">
-                                Bienvenido {{ user.name }}, mantén al día tu esquema de vacunación.
+                                Bienvenido {{ user?.name || 'Usuario' }}, mantén al día tu esquema de vacunación.
                             </p>
                         </div>
                         <div class="mt-4 sm:mt-0 flex items-center space-x-2">
@@ -222,7 +239,7 @@ const additionalInfo = computed(() => [
                                 Sistema Activo
                             </div>
                             <!-- Debug temporal - mostrar rol actual -->
-                            <div v-if="user.roles && user.roles.length > 0"
+                            <div v-if="user?.roles && user.roles.length > 0"
                                 class="flex items-center bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">
                                 Rol: {{ user.roles[0].name }}
                             </div>
@@ -238,7 +255,7 @@ const additionalInfo = computed(() => [
             <!-- Main Content -->
             <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
                 <!-- Stats Section (solo para médicos y administradores) -->
-                <div v-if="user.roles?.some(role => ['MEDICO', 'ADMINISTRADOR', 'medico', 'administrador'].includes(role.name))"
+                <div v-if="user?.roles?.some(role => ['MEDICO', 'ADMINISTRADOR', 'medico', 'administrador'].includes(role.name))"
                     class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                     <!-- Header con título -->
                     <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
@@ -258,9 +275,8 @@ const additionalInfo = computed(() => [
                                         </div>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas
-                                            }}</p>
-                                        <p class="text-sm text-gray-500">Vacunas Aplicadas</p>
+                                        <p class="text-2xl font-semibold text-gray-900">{{ dashboardStats.totalVacunas }}</p>
+                                        <p class="text-sm text-gray-500">Total de Vacunas</p>
                                     </div>
                                 </div>
                             </div>
@@ -419,6 +435,7 @@ const additionalInfo = computed(() => [
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </AppLayout>
