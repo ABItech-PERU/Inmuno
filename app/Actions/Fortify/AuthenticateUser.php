@@ -17,7 +17,7 @@ class AuthenticateUser
      */
     public function __invoke(Request $request)
     {
-        $this->validateRecaptcha($request);
+        // $this->validateRecaptcha($request);
 
         return $this->authenticateUser($request);
     }
