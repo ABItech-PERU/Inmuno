@@ -36,11 +36,7 @@
         @inertiaHead
 
         <!-- reCAPTCHA Script -->
-
-
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LcCmxEsAAAAAHXMfr10uUaDHxp4UGuRgpK88qSq"></script>
-  <!-- Your code -->
-
+        <script src="https://www.google.com/recaptcha/api.js"></script>
     </head>
     <body class="font-sans antialiased">
         @inertia
