@@ -1,7 +1,7 @@
 <script setup>
 import Modal from './Modal.vue';
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'confirm']);
 
 defineProps({
     show: {
@@ -16,10 +16,30 @@ defineProps({
         type: Boolean,
         default: true,
     },
+    processing: {
+        type: Boolean,
+        default: false,
+    },
+    confirmText: {
+        type: String,
+        default: 'Eliminar',
+    },
+    processingText: {
+        type: String,
+        default: 'Eliminando...',
+    },
+    confirmButtonClass: {
+        type: String,
+        default: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+    },
 });
 
 const close = () => {
     emit('close');
+};
+
+const confirm = () => {
+    emit('confirm');
 };
 </script>
 
@@ -32,13 +52,13 @@ const close = () => {
     >
         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="sm:flex sm:items-start">
-                <div class="mx-auto shrink-0 flex items-center justify-center size-12 rounded-full bg-red-100 sm:mx-0 sm:size-10">
-                    <svg class="size-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
                 </div>
 
-                <div class="mt-3 text-center sm:mt-0 sm:ms-4 sm:text-start">
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 class="text-lg font-medium text-gray-900">
                         <slot name="title" />
                     </h3>
@@ -50,8 +70,25 @@ const close = () => {
             </div>
         </div>
 
-        <div class="flex flex-row justify-end px-6 py-4 bg-gray-100 text-end">
-            <slot name="footer" />
+        <div class="flex flex-row justify-end px-6 py-4 bg-gray-100 text-right space-x-3">
+            <button
+                type="button"
+                @click="close"
+                :disabled="processing"
+                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Cancelar
+            </button>
+
+            <button
+                type="button"
+                @click="confirm"
+                :disabled="processing"
+                :class="`inline-flex justify-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${confirmButtonClass}`"
+            >
+                <span v-if="processing">{{ processingText }}</span>
+                <span v-else>{{ confirmText }}</span>
+            </button>
         </div>
     </Modal>
 </template>

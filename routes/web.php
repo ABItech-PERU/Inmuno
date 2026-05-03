@@ -1,5 +1,12 @@
 <?php
 
+use App\Actions\Fortify\CompletarRegistro;
+use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\Paciente\CentroSaludController as CentroSaludControllerPaciente;
+use App\Http\Controllers\Paciente\DependientesController;
+use App\Http\Controllers\Paciente\RecordatoriosController;
+use App\Http\Controllers\Paciente\EsquemaVacunacionController;
+use App\Http\Controllers\TodoSobreVacunas;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -13,12 +20,116 @@ Route::get('/', function () {
     ]);
 });
 
+Route::middleware(['guest'])->controller(GoogleController::class)->group(function () {
+    Route::get('/google/redirect', 'redirect')->name('google');
+    Route::get('/google/callback', 'callback');
+});
+
+Route::middleware('auth')->controller(CompletarRegistro::class)->group(function () {
+    Route::get('/completar-registro', 'create')->name('completar.registro');
+    Route::post('/completar-registro', 'store');
+});
+
+Route::get('/sobre-vacunas', [TodoSobreVacunas::class, 'web'])->name('sobre-vacunas');
+
+// Centro de Salud público
+Route::get('/centros-de-salud', [CentroSaludControllerPaciente::class, 'index'])
+    ->name('centros-de-salud.index');
+Route::get('/api/centros-de-salud/list', [CentroSaludControllerPaciente::class, 'list'])
+    ->name('centros-de-salud.list');
+
+// Endpoints públicos para catálogos y búsqueda
+Route::get('/api/departamentos', [CentroSaludControllerPaciente::class, 'getDepartamentos'])
+    ->name('centros-de-salud.departamentos');
+Route::get('/api/provincias/{departamento}', [CentroSaludControllerPaciente::class, 'getProvinciasPublic'])
+    ->name('centros-de-salud.provincias');
+Route::get('/api/distritos/{provincia}', [CentroSaludControllerPaciente::class, 'getDistritosPublic'])
+    ->name('centros-de-salud.distritos');
+// NOTE: use `/api/centros-de-salud/list` with query params for search (search, departamento, provincia, distrito)
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+    'registro',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+
+    // Rutas de administración - solo para administradores
+    Route::middleware(['role:ADMINISTRADOR'])->prefix('admin')->name('admin.')->group(function () {
+        // Gestión de Vacunas
+        Route::resource('vacunas', App\Http\Controllers\Admin\VacunaController::class);
+        Route::patch('vacunas/{vacuna}/toggle-status', [App\Http\Controllers\Admin\VacunaController::class, 'toggleStatus'])
+            ->name('vacunas.toggle-status');
+
+        // Gestión de Esquemas de Vacunación
+        Route::resource('esquemas', App\Http\Controllers\Admin\EsquemaController::class);
+        Route::get('esquemas/{esquema}/vacunas', [App\Http\Controllers\Admin\EsquemaController::class, 'manageVacunas'])
+            ->name('esquemas.vacunas');
+        Route::post('esquemas/{esquema}/vacunas/store', [App\Http\Controllers\Admin\EsquemaController::class, 'storeDosisVacuna'])
+            ->name('esquemas.vacunas.store');
+        Route::patch('esquemas/{esquema}/dosis/{dosis}', [App\Http\Controllers\Admin\EsquemaController::class, 'updateDosisVacuna'])
+            ->name('esquemas.dosis.update');
+        Route::delete('esquemas/{esquema}/dosis/{dosis}', [App\Http\Controllers\Admin\EsquemaController::class, 'destroyDosisVacuna'])
+            ->name('esquemas.dosis.destroy');
+        Route::get('api/vacunas-disponibles', [App\Http\Controllers\Admin\EsquemaController::class, 'getVacunasDisponibles'])
+            ->name('api.vacunas-disponibles');
+
+        // Gestión de Centros de Salud
+        Route::resource('centros-salud', App\Http\Controllers\Admin\CentroSaludController::class);
+        Route::patch('centros-salud/{centros_salud}/toggle-status', [App\Http\Controllers\Admin\CentroSaludController::class, 'toggleStatus'])
+            ->name('centros-salud.toggle-status');
+        Route::get('api/provincias/{departamento}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getProvincias'])
+            ->name('api.provincias');
+        Route::get('api/distritos/{provincia}', [App\Http\Controllers\Admin\CentroSaludController::class, 'getDistritos'])
+            ->name('api.distritos');
+
+        // Gestión de Usuarios
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+        Route::patch('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])
+            ->name('users.toggle-status');
+
+        // Gestión de Recordatorios
+        Route::resource('recordatorios', App\Http\Controllers\Admin\RecordatorioController::class)->except(['create', 'store']);
+        Route::patch('recordatorios/{recordatorio}/marcar-enviado', [App\Http\Controllers\Admin\RecordatorioController::class, 'marcarEnviado'])
+            ->name('recordatorios.marcar-enviado');
+
+        // Módulo de Estadísticas y Reportes
+        Route::get('/estadisticas', [App\Http\Controllers\Admin\EstadisticasController::class, 'index'])
+            ->name('estadisticas.index');
+    });
+
+    // Rutas para pacientes - solo para usuarios con rol PACIENTE
+    Route::middleware(['role:PACIENTE'])->prefix('paciente')->name('paciente.')->group(function () {
+        // Módulo de Recordatorios
+        Route::get('/recordatorios', [RecordatoriosController::class, 'index'])
+            ->name('recordatorios.index');
+        Route::get('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'show'])
+            ->name('recordatorios.show');
+        Route::post('/recordatorios', [RecordatoriosController::class, 'store'])
+            ->name('recordatorios.store');
+        Route::get('/recordatorios/{recordatorio}/edit', [RecordatoriosController::class, 'edit'])
+            ->name('recordatorios.edit');
+        Route::put('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'update'])
+            ->name('recordatorios.update');
+        Route::delete('/recordatorios/{recordatorio}', [RecordatoriosController::class, 'destroy'])
+            ->name('recordatorios.destroy');
+        Route::patch('/recordatorios/{recordatorio}/completado', [RecordatoriosController::class, 'marcarCompletado'])
+            ->name('recordatorios.marcar-completado');
+
+        // Módulo de Dependientes
+        Route::resource('dependientes', DependientesController::class);
+
+        // Módulo de Esquema de Vacunación
+        Route::get('/esquema-vacunacion', [EsquemaVacunacionController::class, 'index'])
+            ->name('esquema-vacunacion.index');
+        Route::get('/esquema-vacunacion/{persona_tipo}/{persona_id?}', [EsquemaVacunacionController::class, 'show'])
+            ->name('esquema-vacunacion.show');
+        Route::post('/esquema-vacunacion/marcar-aplicada', [EsquemaVacunacionController::class, 'marcarAplicada'])
+            ->name('esquema-vacunacion.marcar-aplicada');
+        Route::get('/api/centros-salud', [EsquemaVacunacionController::class, 'getCentrosSalud'])
+            ->name('api.centros-salud');
+
+        Route::get('/sobre-vacunas', [TodoSobreVacunas::class, 'admin'])->name('paciente.sobre-vacunas');
+    });
 });
